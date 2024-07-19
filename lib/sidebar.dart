@@ -39,7 +39,6 @@ class Sidebar extends StatelessWidget {
             ),
           ),
           const Divider(color: Colors.grey),
-
           for (String chat in chatList)
             SidebarItem(
               icon: Icons.chat,
@@ -48,10 +47,10 @@ class Sidebar extends StatelessWidget {
               onTap: () => selectChat(chat),
             ),
           const Spacer(),
-          // ElevatedButton(
-          //   onPressed: addNewChat,
-          //   child: const Text('Add New Chat'),
-          // ),
+          ElevatedButton(
+            onPressed: addNewChat,
+            child: const Text('Add New Chat'),
+          ),
           const Divider(color: Colors.grey),
           SidebarItem(
             icon: Icons.logout,
