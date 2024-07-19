@@ -1,0 +1,83 @@
+{
+  "project_info": {
+    "project_number": "233917914772",
+    "firebase_url": "https://god-rage-aaca3-default-rtdb.firebaseio.com",
+    "project_id": "god-rage-aaca3",
+    "storage_bucket": "god-rage-aaca3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:233917914772:android:593d069fbaa0bffe511e81",
+        "android_client_info": {
+          "package_name": "com.example.godrage"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "233917914772-078i6n714s4pu35sjf2staqh2iq8625t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNIel_mC0vMFWIfpJXRh9bP-Jzj5U3_-A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "233917914772-078i6n714s4pu35sjf2staqh2iq8625t.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "233917914772-89jkuj766qj9nbdrckva16n7bsdhtidg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.godrage"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:233917914772:android:9eb1093df24a7db9511e81",
+        "android_client_info": {
+          "package_name": "com.godrej.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "233917914772-078i6n714s4pu35sjf2staqh2iq8625t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNIel_mC0vMFWIfpJXRh9bP-Jzj5U3_-A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "233917914772-078i6n714s4pu35sjf2staqh2iq8625t.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "233917914772-89jkuj766qj9nbdrckva16n7bsdhtidg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.godrage"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
