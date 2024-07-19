@@ -4,8 +4,12 @@ import 'package:godrage/app_theme.dart';
 import 'package:godrage/history_section.dart';
 import 'package:godrage/message_input.dart';
 import 'package:godrage/message_tab.dart';
+import 'package:godrage/providers/session_provider.dart';
 import 'package:godrage/sidebar.dart';
-//ok
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+import 'package:provider/provider.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key, required this.title});
@@ -36,10 +40,16 @@ class _ChatPageState extends State<ChatPage> {
 
   final ScrollController _scrollController = ScrollController();
 
+  init() async {
+    _messages = _chatMessages[_selectedChat] ?? [];
+    await context.read<SessionProvider>().getSessions();
+    print("init");
+  }
+
   @override
   void initState() {
     super.initState();
-    _messages = _chatMessages[_selectedChat] ?? [];
+    init();
   }
 
   @override
@@ -115,44 +125,64 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  void _addNewChat() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('New Chat'),
-          content: TextField(
-            controller: _newChatController,
-            decoration: const InputDecoration(
-              hintText: 'Enter chat name',
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                final newChatName = _newChatController.text;
-                if (newChatName.isNotEmpty &&
-                    !_chatList.contains(newChatName)) {
-                  setState(() {
-                    _chatList.add(newChatName);
-                    _chatMessages[newChatName] = [];
-                    _newChatController.clear();
-                  });
-                }
-                Navigator.of(context).pop();
-              },
-              child: const Text('Add'),
-            ),
-          ],
-        );
-      },
-    );
+  Future<void> _addNewChat() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        PlatformFile file = result.files.first;
+
+        // Local Flask server URL
+        String url = 'http://127.0.0.1:5000/create_session';
+
+        var request = http.MultipartRequest('POST', Uri.parse(url));
+
+        // Handle file content for web
+        if (file.bytes != null) {
+          request.files.add(http.MultipartFile.fromBytes(
+            'pdfs',
+            file.bytes!,
+            filename: file.name,
+          ));
+        } else if (file.path != null) {
+          request.files.add(await http.MultipartFile.fromPath(
+            'pdfs',
+            file.path!,
+            filename: file.name,
+          ));
+        } else {
+          print('File not supported');
+          return;
+        }
+
+        var response = await request.send();
+
+        if (response.statusCode == 200) {
+          var responseData = await http.Response.fromStream(response);
+          var responseJson = json.decode(responseData.body);
+          String newChatName = 'Chat ${_chatList.length + 1}';
+          print('Response from server: $responseJson');
+
+          // setState(() {
+          //   _chatList.add(newChatName);
+          //   _chatMessages[newChatName] = [];
+          //   _selectedChat = newChatName;
+          //   _messages = [];
+          //   _newChatController.clear();
+          // });
+
+          // Navigator.of(context).pop();
+        } else {
+          // Handle error
+          print('Failed to create session: ${response.statusCode}');
+        }
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
   }
 
   @override
