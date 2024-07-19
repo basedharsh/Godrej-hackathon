@@ -11,8 +11,9 @@ class SessionProvider extends ChangeNotifier {
   Future<void> getSessions() async {
     final querySnapshot =
         await sessionsRef.orderBy('createdAt', descending: true).get();
-    _sessions = querySnapshot.docs.map((doc) => doc.data()).toList().toList();
+    _sessions = querySnapshot.docs.map((doc) => doc.data()).toList();
     print("sessions: $_sessions");
+    print(querySnapshot.docs);
     notifyListeners();
   }
 }
