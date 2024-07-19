@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:godrage/chat_page.dart';
 import 'package:godrage/firebase_options.dart';
+import 'package:godrage/providers/session_provider.dart';
+import 'package:provider/provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,10 +18,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'ChatGPT-like Chat',
-      home: ChatPage(title: 'GOD-Rage'),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => SessionProvider()),
+      ],
+      child: const MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'ChatGPT-like Chat',
+        home: ChatPage(title: 'GOD-Rage'),
+      ),
     );
   }
 }
