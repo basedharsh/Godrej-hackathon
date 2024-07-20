@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 class AppTheme {
   // Colors
   static const Color colorBlack = Color(0xff040520);
-  static const Color colorWhite = Colors.white;
-  static const Color colorBlue = Color(0xff1B499C);
-  static const Color colorGrey = Color(0xff57606f);
-  static const Color colorYellow = Color(0xffFDD30B);
+  static const Color colorWhite = Color.fromARGB(255, 140, 136, 136);
+  static const Color colorBlue = Color.fromARGB(255, 124, 126, 131);
+  static const Color colorGrey = Color.fromARGB(255, 124, 126, 131);
+  static const Color colorYellow = Color.fromARGB(255, 255, 117, 37);
   static const Color greyTextColor = Color(0xffA7A7AF);
   static const Color backgroundColor = Color(0xffF2F2F3);
   static const Color borderColor = Color(0xffDCDCE0);
   static const Color colorRed = Color(0xffED0000);
-  static const Color colorDarkGrey = Color(0xff2f3542);
+  static const Color colorDarkGrey = Color.fromARGB(255, 41, 38, 38);
 
   //Font Size
   static const double fontSizeSmall = 12.0;
