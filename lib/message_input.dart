@@ -52,7 +52,7 @@ class MessageInput extends StatelessWidget {
           FloatingActionButton(
             onPressed: sendMessage,
             tooltip: 'Send',
-            backgroundColor: Colors.orange,
+            backgroundColor: const Color.fromARGB(255, 248, 122, 83),
             child: const Icon(Icons.send,
                 color: Colors.white), // Set icon color to white
           ),
