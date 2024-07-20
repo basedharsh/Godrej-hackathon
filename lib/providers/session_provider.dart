@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SessionProvider extends ChangeNotifier {
@@ -13,7 +13,9 @@ class SessionProvider extends ChangeNotifier {
       _sessions = querySnapshot.docs.map((doc) => doc.data()).toList();
       notifyListeners();
     } catch (e) {
-      print("Error fetching sessions: $e");
+      if (kDebugMode) {
+        print("Error fetching sessions: $e");
+      }
     }
   }
 

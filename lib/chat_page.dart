@@ -294,13 +294,18 @@ class _ChatPageState extends State<ChatPage> {
                                       ),
                           ),
                           if (_selectedOption == 'Messages')
+                            //Message is Sent
                             MessageInput(
                               controller: _controller,
                               sendMessage: () {
-                                _askQuestion(
-                                  question: _controller.text,
-                                  sessionId: _selectedSessionID,
-                                );
+                                final message = _controller.text.trim();
+                                if (message.isNotEmpty) {
+                                  _askQuestion(
+                                    question: message,
+                                    sessionId: _selectedSessionID,
+                                  );
+                                  _controller.clear();
+                                }
                               },
                             ),
                         ],
@@ -355,10 +360,4 @@ class ChooseModelTab extends StatelessWidget {
   }
 }
 
-class ChatMessage {
-  final String? text;
-  final PlatformFile? file;
-  final bool isUserMessage;
-
-  ChatMessage({this.text, this.file, this.isUserMessage = true});
-}
+// 
