@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:godrage/Models/chat_model.dart';
+import 'package:godrage/app_theme.dart';
 import 'package:godrage/globals.dart';
 import 'package:godrage/providers/message_tab_provider.dart';
 import 'package:godrage/providers/session_provider.dart';
@@ -34,10 +35,10 @@ class _MessagesTabState extends State<MessagesTab> {
   Widget build(BuildContext context) {
     if (widget.sessionID.isEmpty) {
       return Container(
-          color: Colors.black,
+          color: AppTheme.backgroundColor,
           child: const Center(
               child: Text("Waiting for session...",
-                  style: TextStyle(color: Colors.white))));
+                  style: TextStyle(color: AppTheme.textColor))));
     }
 
     final chatStream =
@@ -49,18 +50,18 @@ class _MessagesTabState extends State<MessagesTab> {
           AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Container(
-            color: Colors.black,
+            color: AppTheme.backgroundColor,
             child: const Center(
-                child: CircularProgressIndicator(color: Colors.white)),
+                child: CircularProgressIndicator(color: AppTheme.textColor)),
           );
         }
 
         if (snapshot.hasError) {
           return Container(
-            color: Colors.black,
+            color: AppTheme.backgroundColor,
             child: const Center(
                 child: Text("Error loading messages.",
-                    style: TextStyle(color: Colors.white))),
+                    style: TextStyle(color: AppTheme.textColor))),
           );
         }
 
@@ -68,19 +69,19 @@ class _MessagesTabState extends State<MessagesTab> {
             snapshot.data == null ||
             snapshot.data!.data() == null) {
           return Container(
-            color: Colors.black,
+            color: AppTheme.backgroundColor,
             child: const Center(
                 child: Text("No messages found.",
-                    style: TextStyle(color: Colors.white))),
+                    style: TextStyle(color: AppTheme.textColor))),
           );
         }
         final sessionData = snapshot.data!.data();
         if (sessionData == null) {
           return Container(
-            color: Colors.black,
+            color: AppTheme.backgroundColor,
             child: const Center(
                 child: Text("No messages found.",
-                    style: TextStyle(color: Colors.white))),
+                    style: TextStyle(color: AppTheme.textColor))),
           );
         }
 
@@ -108,7 +109,7 @@ class _MessagesTabState extends State<MessagesTab> {
         });
 
         return Container(
-          color: Colors.black, // Set the background color to black
+          color: AppTheme.backgroundColor, // Set the background color to black
           child: Consumer<MessagesTabProvider>(
             builder: (context, provider, child) {
               return ListView.builder(
@@ -136,7 +137,8 @@ class _MessagesTabState extends State<MessagesTab> {
                       }
                     },
                     child: Container(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 8.0, horizontal: 16.0),
                       child: Align(
                         alignment: message.isUserMessage
                             ? Alignment.centerRight
@@ -158,7 +160,8 @@ class _MessagesTabState extends State<MessagesTab> {
       ChatMessage message, int index, MessagesTabProvider provider) {
     return ConstrainedBox(
       constraints: BoxConstraints(
-        maxWidth: MediaQuery.of(context).size.width * 0.75,
+        maxWidth:
+            MediaQuery.of(context).size.width * 0.40, //width of chat bubble
       ),
       child: Column(
         crossAxisAlignment: message.isUserMessage
@@ -171,8 +174,12 @@ class _MessagesTabState extends State<MessagesTab> {
             margin: const EdgeInsets.symmetric(vertical: 4.0),
             decoration: BoxDecoration(
               color: provider.highlightedIndex == index
-                  ? (message.isUserMessage ? Colors.grey[700] : Colors.black)
-                  : (message.isUserMessage ? Colors.grey[600] : Colors.black),
+                  ? (message.isUserMessage
+                      ? AppTheme.userMessageHighlightedBackgroundColor
+                      : AppTheme.botMessageBackgroundColor)
+                  : (message.isUserMessage
+                      ? AppTheme.userMessageBackgroundColor
+                      : AppTheme.botMessageBackgroundColor),
               borderRadius: message.isUserMessage
                   ? const BorderRadius.only(
                       topLeft: Radius.circular(15.0),
@@ -197,7 +204,7 @@ class _MessagesTabState extends State<MessagesTab> {
                 ? Text(
                     message.message,
                     style: const TextStyle(
-                      color: Colors.white, // Set text color to white
+                      color: AppTheme.textColor, // Set text color to white
                     ),
                   )
                 : const SizedBox.shrink(),
@@ -220,7 +227,7 @@ class _MessagesTabState extends State<MessagesTab> {
               maxWidth: MediaQuery.of(context).size.width * 0.50,
             ),
             decoration: BoxDecoration(
-              color: Colors.black,
+              color: AppTheme.typingIndicatorBackgroundColor,
               borderRadius: const BorderRadius.only(
                 topRight: Radius.circular(15.0),
                 bottomLeft: Radius.circular(15.0),
@@ -235,18 +242,18 @@ class _MessagesTabState extends State<MessagesTab> {
                 ),
               ],
             ),
-            child: Row(
+            child: const Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 CircleAvatar(
-                  backgroundColor: Colors.grey[700],
+                  backgroundColor: AppTheme.circleAvatarBackgroundColor,
                   child: Icon(
                     Icons.smart_toy_outlined,
-                    color: Colors.grey[800],
+                    color: AppTheme.circleAvatarIconColor,
                   ),
                 ),
-                const SizedBox(width: 8.0),
-                const Expanded(
+                SizedBox(width: 8.0),
+                Expanded(
                   child: TypingIndicator(),
                 ),
               ],

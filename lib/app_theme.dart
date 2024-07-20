@@ -1,14 +1,28 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Colors
+  // main color of our app
+  static const Color backgroundColor = Colors.black;
+  static const Color userMessageBackgroundColor =
+      Color.fromARGB(255, 255, 60, 0);
+  static const Color userMessageHighlightedBackgroundColor =
+      Color.fromARGB(255, 255, 60, 1);
+  static const Color botMessageBackgroundColor = Colors.black;
+  static const Color textColor = Colors.white;
+  static const Color typingIndicatorBackgroundColor = Colors.black;
+  static const Color typingIndicatorDotColor = Colors.white;
+  static const Color circleAvatarBackgroundColor = Colors.grey;
+  static const Color circleAvatarIconColor = Colors.black;
+
+//yeh sab mat dekhna (also dont delete maybe kahi use hora ho)
+
+  // Colors bekar hai
   static const Color colorBlack = Color(0xff040520);
   static const Color colorWhite = Color.fromARGB(255, 140, 136, 136);
   static const Color colorBlue = Color.fromARGB(255, 124, 126, 131);
   static const Color colorGrey = Color.fromARGB(255, 124, 126, 131);
   static const Color colorYellow = Color.fromARGB(255, 255, 117, 37);
   static const Color greyTextColor = Color(0xffA7A7AF);
-  static const Color backgroundColor = Color(0xffF2F2F3);
   static const Color borderColor = Color(0xffDCDCE0);
   static const Color colorRed = Color(0xffED0000);
   static const Color colorDarkGrey = Color.fromARGB(255, 0, 0, 0);
