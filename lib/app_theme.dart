@@ -11,7 +11,7 @@ class AppTheme {
   static const Color backgroundColor = Color(0xffF2F2F3);
   static const Color borderColor = Color(0xffDCDCE0);
   static const Color colorRed = Color(0xffED0000);
-  static const Color colorDarkGrey = Color.fromARGB(255, 41, 38, 38);
+  static const Color colorDarkGrey = Color.fromARGB(255, 0, 0, 0);
 
   //Font Size
   static const double fontSizeSmall = 12.0;

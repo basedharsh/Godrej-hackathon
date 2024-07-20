@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
-// import 'package:file_picker/file_picker.dart';
 
 class MessageInput extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback sendMessage;
-  // final Function(FilePickerResult) sendFile;
 
   const MessageInput({
     super.key,
     required this.controller,
     required this.sendMessage,
-    // required this.sendFile,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Container(
+      color: Colors.black, // Set background color to black
       padding: const EdgeInsets.all(8.0),
       child: Row(
         children: <Widget>[
@@ -35,11 +33,19 @@ class MessageInput extends StatelessWidget {
               controller: controller,
               decoration: InputDecoration(
                 hintText: 'Type a message',
+                hintStyle: const TextStyle(
+                    color: Colors.white70), // Set hint text color to white
+                filled: true,
+                fillColor: Colors
+                    .grey[800], // Set input field background color to dark grey
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
+                  borderSide: BorderSide.none, // Remove the border
                 ),
                 contentPadding: const EdgeInsets.all(12.0),
               ),
+              style: const TextStyle(
+                  color: Colors.white), // Set text color to white
             ),
           ),
           const SizedBox(width: 8.0),
@@ -47,7 +53,8 @@ class MessageInput extends StatelessWidget {
             onPressed: sendMessage,
             tooltip: 'Send',
             backgroundColor: Colors.orange,
-            child: const Icon(Icons.send),
+            child: const Icon(Icons.send,
+                color: Colors.white), // Set icon color to white
           ),
         ],
       ),

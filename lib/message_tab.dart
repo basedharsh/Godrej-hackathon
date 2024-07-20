@@ -33,7 +33,11 @@ class _MessagesTabState extends State<MessagesTab> {
   @override
   Widget build(BuildContext context) {
     if (widget.sessionID.isEmpty) {
-      return const Center(child: Text("Invalid session ID."));
+      return Container(
+          color: Colors.black,
+          child: const Center(
+              child: Text("Waiting for session...",
+                  style: TextStyle(color: Colors.white))));
     }
 
     final chatStream =
@@ -44,21 +48,40 @@ class _MessagesTabState extends State<MessagesTab> {
       builder: (BuildContext context,
           AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return Container(
+            color: Colors.black,
+            child: const Center(
+                child: CircularProgressIndicator(color: Colors.white)),
+          );
         }
 
         if (snapshot.hasError) {
-          return const Center(child: Text("Error loading messages."));
+          return Container(
+            color: Colors.black,
+            child: const Center(
+                child: Text("Error loading messages.",
+                    style: TextStyle(color: Colors.white))),
+          );
         }
 
         if (!snapshot.hasData ||
             snapshot.data == null ||
             snapshot.data!.data() == null) {
-          return const Center(child: Text("No messages found."));
+          return Container(
+            color: Colors.black,
+            child: const Center(
+                child: Text("No messages found.",
+                    style: TextStyle(color: Colors.white))),
+          );
         }
         final sessionData = snapshot.data!.data();
         if (sessionData == null) {
-          return const Center(child: Text("No messages found."));
+          return Container(
+            color: Colors.black,
+            child: const Center(
+                child: Text("No messages found.",
+                    style: TextStyle(color: Colors.white))),
+          );
         }
 
         final messages =
@@ -84,44 +107,48 @@ class _MessagesTabState extends State<MessagesTab> {
               .updateMessages(messages);
         });
 
-        return Consumer<MessagesTabProvider>(
-          builder: (context, provider, child) {
-            return ListView.builder(
-              controller: provider.scrollController,
-              itemCount: provider.messages.length + (provider.isTyping ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index == provider.messages.length && provider.isTyping) {
-                  return _buildTypingIndicator();
-                }
+        return Container(
+          color: Colors.black, // Set the background color to black
+          child: Consumer<MessagesTabProvider>(
+            builder: (context, provider, child) {
+              return ListView.builder(
+                controller: provider.scrollController,
+                itemCount:
+                    provider.messages.length + (provider.isTyping ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index == provider.messages.length && provider.isTyping) {
+                    return _buildTypingIndicator();
+                  }
 
-                final message = provider.messages[index];
-                return InkWell(
-                  onLongPress: () {
-                    if (!message.isUserMessage) {
-                      if (kDebugMode) {
-                        print("Favourite");
+                  final message = provider.messages[index];
+                  return InkWell(
+                    onLongPress: () {
+                      if (!message.isUserMessage) {
+                        if (kDebugMode) {
+                          print("Favourite");
+                        }
+
+                        favouritesRef.doc().set({
+                          'message': message.message,
+                          'createdAt': DateTime.now(),
+                          'session_id': widget.sessionID,
+                        });
                       }
-
-                      favouritesRef.doc().set({
-                        'message': message.message,
-                        'createdAt': DateTime.now(),
-                        'session_id': widget.sessionID,
-                      });
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Align(
-                      alignment: message.isUserMessage
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
-                      child: _buildMessage(message, index, provider),
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Align(
+                        alignment: message.isUserMessage
+                            ? Alignment.centerRight
+                            : Alignment.centerLeft,
+                        child: _buildMessage(message, index, provider),
+                      ),
                     ),
-                  ),
-                );
-              },
-            );
-          },
+                  );
+                },
+              );
+            },
+          ),
         );
       },
     );
@@ -144,12 +171,8 @@ class _MessagesTabState extends State<MessagesTab> {
             margin: const EdgeInsets.symmetric(vertical: 4.0),
             decoration: BoxDecoration(
               color: provider.highlightedIndex == index
-                  ? (message.isUserMessage
-                      ? Colors.blue[200]
-                      : Colors.green[100])
-                  : (message.isUserMessage
-                      ? Colors.blue[100]
-                      : Colors.green[50]),
+                  ? (message.isUserMessage ? Colors.grey[700] : Colors.black)
+                  : (message.isUserMessage ? Colors.grey[600] : Colors.black),
               borderRadius: message.isUserMessage
                   ? const BorderRadius.only(
                       topLeft: Radius.circular(15.0),
@@ -174,7 +197,7 @@ class _MessagesTabState extends State<MessagesTab> {
                 ? Text(
                     message.message,
                     style: const TextStyle(
-                      color: Colors.black,
+                      color: Colors.white, // Set text color to white
                     ),
                   )
                 : const SizedBox.shrink(),
@@ -197,7 +220,7 @@ class _MessagesTabState extends State<MessagesTab> {
               maxWidth: MediaQuery.of(context).size.width * 0.50,
             ),
             decoration: BoxDecoration(
-              color: Colors.green[50],
+              color: Colors.black,
               borderRadius: const BorderRadius.only(
                 topRight: Radius.circular(15.0),
                 bottomLeft: Radius.circular(15.0),
@@ -216,10 +239,10 @@ class _MessagesTabState extends State<MessagesTab> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 CircleAvatar(
-                  backgroundColor: Colors.green[300],
-                  child: const Icon(
+                  backgroundColor: Colors.grey[700],
+                  child: Icon(
                     Icons.smart_toy_outlined,
-                    color: Colors.white,
+                    color: Colors.grey[800],
                   ),
                 ),
                 const SizedBox(width: 8.0),

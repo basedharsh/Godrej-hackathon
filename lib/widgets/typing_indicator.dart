@@ -49,7 +49,7 @@ class _DotState extends State<Dot> with SingleTickerProviderStateMixin {
       opacity: _controller,
       child: const CircleAvatar(
         radius: 4,
-        backgroundColor: Colors.grey,
+        backgroundColor: Colors.white, // Set dot color to white
       ),
     );
   }
