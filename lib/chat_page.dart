@@ -23,6 +23,7 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   String _selectedSessionID = '';
+  String _selectedOption = 'Messages';
   final TextEditingController _controller = TextEditingController();
   final TextEditingController _newChatNameController = TextEditingController();
 
@@ -92,35 +93,10 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  // void _sendFile(FilePickerResult result) {
-  //   setState(() {
-  //     _messages.add(ChatMessage(file: result.files.first, isUserMessage: true));
-  //     _chatMessages[_selectedChat] = _messages;
-  //   });
-  //   _scrollController.animateTo(
-  //     _scrollController.position.maxScrollExtent,
-  //     duration: const Duration(milliseconds: 300),
-  //     curve: Curves.easeOut,
-  //   );
-
-  //   // Simulate an automatic reply after sending a file
-  //   Future.delayed(const Duration(seconds: 1), () {
-  //     setState(() {
-  //       _messages
-  //           .add(ChatMessage(text: 'File received!', isUserMessage: false));
-  //       _chatMessages[_selectedChat] = _messages;
-  //     });
-  //     _scrollController.animateTo(
-  //       _scrollController.position.maxScrollExtent,
-  //       duration: const Duration(milliseconds: 300),
-  //       curve: Curves.easeOut,
-  //     );
-  //   });
-  // }
-
   void _selectSession(String sessionID) {
     setState(() {
       _selectedSessionID = sessionID;
+      _selectedOption = 'Messages';
     });
     if (MediaQuery.of(context).size.width < 600) {
       Navigator.pop(context); // Close the drawer on mobile
@@ -227,6 +203,12 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
+  void _selectOption(String option) {
+    setState(() {
+      _selectedOption = option;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     bool showDrawer = MediaQuery.of(context).size.width < 600;
@@ -290,31 +272,74 @@ class _ChatPageState extends State<ChatPage> {
                       child: Column(
                         children: <Widget>[
                           Expanded(
-                            child: MessagesTab(
-                              scrollController: _scrollController,
-                              sessionID: _selectedSessionID,
+                            child: _selectedOption == 'Pinned Message'
+                                ? PinnedMessageTab(
+                                    sessionID: _selectedSessionID)
+                                : _selectedOption == 'Choose Model'
+                                    ? ChooseModelTab(
+                                        sessionID: _selectedSessionID)
+                                    : MessagesTab(
+                                        scrollController: _scrollController,
+                                        sessionID: _selectedSessionID,
+                                      ),
+                          ),
+                          if (_selectedOption == 'Messages')
+                            MessageInput(
+                              controller: _controller,
+                              sendMessage: () {
+                                _askQuestion(
+                                  question: _controller.text,
+                                  sessionId: _selectedSessionID,
+                                );
+                              },
                             ),
-                          ),
-                          MessageInput(
-                            controller: _controller,
-                            sendMessage: () {
-                              _askQuestion(
-                                question: _controller.text,
-                                sessionId: _selectedSessionID,
-                              );
-                            },
-                            // sendFile: (){},
-                          ),
                         ],
                       ),
                     ),
                   ),
                 ),
               ),
-              if (showSidebar) const HistorySection(),
+              if (showSidebar)
+                HistorySection(
+                  onSelectOption: _selectOption,
+                ),
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class PinnedMessageTab extends StatelessWidget {
+  final String sessionID;
+
+  const PinnedMessageTab({super.key, required this.sessionID});
+
+  @override
+  Widget build(BuildContext context) {
+    // Replace with the actual pinned message UI
+    return Center(
+      child: Text(
+        'Pinned Messages for Session: $sessionID',
+        style: AppTheme.fontStyleLarge,
+      ),
+    );
+  }
+}
+
+class ChooseModelTab extends StatelessWidget {
+  final String sessionID;
+
+  const ChooseModelTab({super.key, required this.sessionID});
+
+  @override
+  Widget build(BuildContext context) {
+    // Replace with the actual choose model UI
+    return Center(
+      child: Text(
+        'Choose Model for Session: $sessionID',
+        style: AppTheme.fontStyleLarge,
       ),
     );
   }

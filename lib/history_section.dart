@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:godrage/app_theme.dart';
 
 class HistorySection extends StatelessWidget {
-  const HistorySection({super.key});
+  final Function(String) onSelectOption;
+
+  const HistorySection({super.key, required this.onSelectOption});
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +16,7 @@ class HistorySection extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              'History',
+              'Options',
               style: AppTheme.fontStyleLarge.copyWith(
                 color: Colors.white,
               ),
@@ -25,35 +27,15 @@ class HistorySection extends StatelessWidget {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                _buildHistoryItem(
-                  icon: Icons.create,
-                  text: 'Create welcome form',
-                  isSelected: true,
+                _buildOptionItem(
+                  icon: Icons.push_pin,
+                  text: 'Pinned Message',
+                  onTap: () => onSelectOption('Pinned Message'),
                 ),
-                _buildHistoryItem(
-                  icon: Icons.info_outline,
-                  text: 'Instructions',
-                  isSelected: false,
-                ),
-                _buildHistoryItem(
-                  icon: Icons.work_outline,
-                  text: 'Career',
-                  isSelected: false,
-                ),
-                _buildHistoryItem(
-                  icon: Icons.timeline,
-                  text: 'Career',
-                  isSelected: false,
-                ),
-                _buildHistoryItem(
-                  icon: Icons.person_add_alt_1,
-                  text: 'Onboarding',
-                  isSelected: false,
-                ),
-                _buildHistoryItem(
-                  icon: Icons.help_outline,
-                  text: 'Onboarding',
-                  isSelected: false,
+                _buildOptionItem(
+                  icon: Icons.model_training,
+                  text: 'Choose Model',
+                  onTap: () => onSelectOption('Choose Model'),
                 ),
               ],
             ),
@@ -63,28 +45,25 @@ class HistorySection extends StatelessWidget {
     );
   }
 
-  Widget _buildHistoryItem({
+  Widget _buildOptionItem({
     required IconData icon,
     required String text,
-    required bool isSelected,
+    required VoidCallback onTap,
   }) {
     return Container(
-      color:
-          isSelected ? AppTheme.colorBlue.withOpacity(0.2) : Colors.transparent,
+      color: Colors.transparent,
       child: ListTile(
         leading: Icon(
           icon,
-          color: isSelected ? AppTheme.colorYellow : Colors.white,
+          color: Colors.white,
         ),
         title: Text(
           text,
           style: AppTheme.fontStyleDefault.copyWith(
-            color: isSelected ? AppTheme.colorYellow : Colors.white,
+            color: Colors.white,
           ),
         ),
-        onTap: () {
-          // Handle history item tap
-        },
+        onTap: onTap,
       ),
     );
   }
