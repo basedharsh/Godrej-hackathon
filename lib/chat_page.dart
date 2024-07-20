@@ -40,16 +40,16 @@ class _ChatPageState extends State<ChatPage> {
 
   final ScrollController _scrollController = ScrollController();
 
-  init() async {
-    _messages = _chatMessages[_selectedChat] ?? [];
-    await context.read<SessionProvider>().getSessions();
-    print("init");
-  }
-
   @override
   void initState() {
     super.initState();
     init();
+  }
+
+  void init() async {
+    _messages = _chatMessages[_selectedChat] ?? [];
+    await context.read<SessionProvider>().getSessions();
+    print("init");
   }
 
   @override
@@ -166,15 +166,15 @@ class _ChatPageState extends State<ChatPage> {
           String newChatName = 'Chat ${_chatList.length + 1}';
           print('Response from server: $responseJson');
 
-          // setState(() {
-          //   _chatList.add(newChatName);
-          //   _chatMessages[newChatName] = [];
-          //   _selectedChat = newChatName;
-          //   _messages = [];
-          //   _newChatController.clear();
-          // });
+          setState(() {
+            _chatList.add(newChatName);
+            _chatMessages[newChatName] = [];
+            _selectedChat = newChatName;
+            _messages = [];
+            _newChatController.clear();
+          });
 
-          // Navigator.of(context).pop();
+          Navigator.of(context).pop();
         } else {
           // Handle error
           print('Failed to create session: ${response.statusCode}');
