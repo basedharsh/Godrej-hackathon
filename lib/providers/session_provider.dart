@@ -27,6 +27,14 @@ class SessionProvider extends ChangeNotifier {
         .snapshots();
   }
 
+  Future<String> getSessionName(String sessionID) async {
+    final sessionDoc = await FirebaseFirestore.instance
+        .collection('sessions')
+        .doc(sessionID)
+        .get();
+    return sessionDoc['name'] as String;
+  }
+
   void addSession(Map<String, dynamic> session) {
     _sessions.insert(0, session);
     notifyListeners();

@@ -1,13 +1,13 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:godrage/Models/chat_model.dart';
 import 'package:godrage/app_theme.dart';
-import 'package:godrage/globals.dart';
 import 'package:godrage/providers/message_tab_provider.dart';
 import 'package:godrage/providers/session_provider.dart';
 import 'package:godrage/widgets/typing_indicator.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/services.dart'; // Import this for Clipboard functionality
+import 'package:flutter/scheduler.dart'; // Import this for SchedulerBinding
 
 class MessagesTab extends StatefulWidget {
   final ScrollController scrollController;
@@ -29,6 +29,18 @@ class _MessagesTabState extends State<MessagesTab> {
     super.initState();
     final provider = Provider.of<MessagesTabProvider>(context, listen: false);
     provider.scrollController = widget.scrollController;
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
+  }
+
+  void _scrollToBottom() {
+    if (widget.scrollController.hasClients) {
+      widget.scrollController.jumpTo(
+        widget.scrollController.position.maxScrollExtent,
+      );
+    }
   }
 
   @override
@@ -104,12 +116,18 @@ class _MessagesTabState extends State<MessagesTab> {
         });
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          Provider.of<MessagesTabProvider>(context, listen: false)
-              .updateMessages(messages);
+          final provider =
+              Provider.of<MessagesTabProvider>(context, listen: false);
+          provider.updateMessages(messages);
+          provider.loadFavorites(messages, widget.sessionID); // Load favorites
+
+          SchedulerBinding.instance.addPostFrameCallback((_) {
+            _scrollToBottom();
+          });
         });
 
         return Container(
-          color: AppTheme.backgroundColor, // Set the background color to black
+          color: AppTheme.backgroundColor,
           child: Consumer<MessagesTabProvider>(
             builder: (context, provider, child) {
               return ListView.builder(
@@ -122,29 +140,14 @@ class _MessagesTabState extends State<MessagesTab> {
                   }
 
                   final message = provider.messages[index];
-                  return InkWell(
-                    onLongPress: () {
-                      if (!message.isUserMessage) {
-                        if (kDebugMode) {
-                          print("Favourite");
-                        }
-
-                        favouritesRef.doc().set({
-                          'message': message.message,
-                          'createdAt': DateTime.now(),
-                          'session_id': widget.sessionID,
-                        });
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 8.0, horizontal: 16.0),
-                      child: Align(
-                        alignment: message.isUserMessage
-                            ? Alignment.centerRight
-                            : Alignment.centerLeft,
-                        child: _buildMessage(message, index, provider),
-                      ),
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 8.0, horizontal: 16.0),
+                    child: Align(
+                      alignment: message.isUserMessage
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: _buildMessage(message, index, provider),
                     ),
                   );
                 },
@@ -158,104 +161,139 @@ class _MessagesTabState extends State<MessagesTab> {
 
   Widget _buildMessage(
       ChatMessage message, int index, MessagesTabProvider provider) {
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        maxWidth:
-            MediaQuery.of(context).size.width * 0.40, //width of chat bubble
-      ),
-      child: Column(
-        crossAxisAlignment: message.isUserMessage
-            ? CrossAxisAlignment.end
-            : CrossAxisAlignment.start,
-        children: [
-          AnimatedContainer(
-            duration: const Duration(seconds: 2),
-            padding: const EdgeInsets.all(12.0),
-            margin: const EdgeInsets.symmetric(vertical: 4.0),
-            decoration: BoxDecoration(
-              color: provider.highlightedIndex == index
-                  ? (message.isUserMessage
-                      ? AppTheme.userMessageHighlightedBackgroundColor
-                      : AppTheme.botMessageBackgroundColor)
-                  : (message.isUserMessage
-                      ? AppTheme.userMessageBackgroundColor
-                      : AppTheme.botMessageBackgroundColor),
-              borderRadius: message.isUserMessage
-                  ? const BorderRadius.only(
-                      topLeft: Radius.circular(15.0),
-                      bottomLeft: Radius.circular(15.0),
-                      bottomRight: Radius.circular(15.0),
+    return IntrinsicWidth(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth:
+              MediaQuery.of(context).size.width * 0.45, // Width of chat bubble
+        ),
+        child: Column(
+          crossAxisAlignment: message.isUserMessage
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(seconds: 2),
+              padding: const EdgeInsets.all(12.0),
+              margin: const EdgeInsets.symmetric(vertical: 4.0),
+              decoration: BoxDecoration(
+                color: provider.highlightedIndex == index
+                    ? (message.isUserMessage
+                        ? AppTheme.userMessageHighlightedBackgroundColor
+                        : AppTheme.botMessageBackgroundColor)
+                    : (message.isUserMessage
+                        ? AppTheme.userMessageBackgroundColor
+                        : AppTheme.botMessageBackgroundColor),
+                borderRadius: message.isUserMessage
+                    ? const BorderRadius.only(
+                        topLeft: Radius.circular(15.0),
+                        bottomLeft: Radius.circular(15.0),
+                        bottomRight: Radius.circular(15.0),
+                      )
+                    : const BorderRadius.only(
+                        topLeft: Radius.zero,
+                        bottomLeft: Radius.circular(15.0),
+                        bottomRight: Radius.circular(15.0),
+                        topRight: Radius.circular(15.0),
+                      ),
+              ),
+              child: message.isUserMessage
+                  ? Text(
+                      message.message,
+                      style: const TextStyle(
+                        color: AppTheme.textColor, // Set text color to white
+                      ),
                     )
-                  : const BorderRadius.only(
-                      topRight: Radius.circular(15.0),
-                      bottomLeft: Radius.circular(15.0),
-                      bottomRight: Radius.circular(15.0),
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            message.message,
+                            style: const TextStyle(
+                              color: AppTheme.textColor,
+                            ),
+                          ),
+                        ),
+                        Column(
+                          children: [
+                            IconButton(
+                              icon: const Icon(
+                                Icons.copy,
+                                color: AppTheme.textColor,
+                                size: 16,
+                              ),
+                              onPressed: () {
+                                Clipboard.setData(
+                                    ClipboardData(text: message.message));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content:
+                                        Text('Message copied to clipboard'),
+                                  ),
+                                );
+                              },
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                provider.isMessageFavorited(index)
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                color: provider.isMessageFavorited(index)
+                                    ? Colors.red
+                                    : AppTheme.textColor,
+                                size: 16,
+                              ),
+                              onPressed: () {
+                                provider.toggleFavorite(
+                                    index, message.message, widget.sessionID);
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-              boxShadow: [
-                BoxShadow(
-                  color:
-                      const Color.fromARGB(166, 158, 158, 158).withOpacity(0.5),
-                  spreadRadius: 1.5,
-                  blurRadius: 5,
-                  offset: const Offset(0, 2),
-                ),
-              ],
             ),
-            child: message.message.isNotEmpty
-                ? Text(
-                    message.message,
-                    style: const TextStyle(
-                      color: AppTheme.textColor, // Set text color to white
-                    ),
-                  )
-                : const SizedBox.shrink(),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildTypingIndicator() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       child: Align(
         alignment: Alignment.centerLeft,
         child: IntrinsicWidth(
-          child: Container(
-            padding: const EdgeInsets.all(12.0),
-            margin: const EdgeInsets.symmetric(vertical: 4.0),
+          child: ConstrainedBox(
             constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 0.50,
+              maxWidth: MediaQuery.of(context).size.width * 0.45,
             ),
-            decoration: BoxDecoration(
-              color: AppTheme.typingIndicatorBackgroundColor,
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(15.0),
-                bottomLeft: Radius.circular(15.0),
-                bottomRight: Radius.circular(15.0),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.5),
-                  spreadRadius: 2,
-                  blurRadius: 5,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: const Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  backgroundColor: AppTheme.circleAvatarBackgroundColor,
-                  child: Icon(
-                    Icons.smart_toy_outlined,
-                    color: AppTheme.circleAvatarIconColor,
+                AnimatedContainer(
+                  duration: const Duration(seconds: 2),
+                  padding: const EdgeInsets.all(12.0),
+                  margin: const EdgeInsets.symmetric(vertical: 4.0),
+                  decoration: const BoxDecoration(
+                    color: AppTheme.typingIndicatorBackgroundColor,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.zero,
+                      bottomLeft: Radius.circular(15.0),
+                      bottomRight: Radius.circular(15.0),
+                      topRight: Radius.circular(15.0),
+                    ),
                   ),
-                ),
-                SizedBox(width: 8.0),
-                Expanded(
-                  child: TypingIndicator(),
+                  child: const Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: TypingIndicatorDots(),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
