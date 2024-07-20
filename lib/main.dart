@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:godrage/chat_page.dart';
 import 'package:godrage/firebase_options.dart';
+import 'package:godrage/providers/message_tab_provider.dart';
 import 'package:godrage/providers/session_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -21,6 +22,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => SessionProvider()),
+        ChangeNotifierProvider(create: (_) => MessagesTabProvider()),
       ],
       child: const MaterialApp(
         debugShowCheckedModeBanner: false,

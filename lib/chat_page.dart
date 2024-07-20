@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:godrage/Models/chat_model.dart';
 import 'package:godrage/app_theme.dart';
 import 'package:godrage/globals.dart';
 import 'package:godrage/history_section.dart';
@@ -9,10 +10,11 @@ import 'package:godrage/message_input.dart';
 import 'package:godrage/message_tab.dart';
 import 'package:godrage/providers/session_provider.dart';
 import 'package:godrage/sidebar.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-
+import 'package:godrage/utils/get_uuid.dart';
 import 'package:provider/provider.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:godrage/providers/message_tab_provider.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key, required this.title});
@@ -28,7 +30,6 @@ class _ChatPageState extends State<ChatPage> {
   String _selectedOption = 'Messages';
   final TextEditingController _controller = TextEditingController();
   final TextEditingController _newChatNameController = TextEditingController();
-
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -56,17 +57,26 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void> _askQuestion(
       {required String sessionId, required String question}) async {
+    final provider = Provider.of<MessagesTabProvider>(context, listen: false);
+
+    // Add user's message to the local state
+    provider.addMessage(ChatMessage(message: question, isUserMessage: true));
+    String id = getUUID();
+
     sessionsRef.doc(sessionId).update({
       'chat_history': FieldValue.arrayUnion([
         {
           'message': question,
           'isUser': true,
+          'id': id,
         }
       ])
     });
+
+    provider.setIsTyping(true);
+
     try {
       final response = await http.post(
-        // Uri.parse('http://0.0.0.0:8000/ask_question'),
         Uri.parse('http://127.0.0.1:5000/ask_question'),
         headers: {
           'Content-Type': 'application/json',
@@ -79,11 +89,13 @@ class _ChatPageState extends State<ChatPage> {
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
-        final chatHistory = responseData['chat_history'];
+        final botMessage = responseData['chat_history']
+            .last['content']; // Adjust based on your API response
 
-        if (kDebugMode) {
-          print(chatHistory);
-        }
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          provider.addBotMessage(
+              ChatMessage(message: botMessage, isUserMessage: false));
+        });
 
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
@@ -91,12 +103,15 @@ class _ChatPageState extends State<ChatPage> {
           curve: Curves.easeOut,
         );
       } else {
-        // Handle error
+        provider.setIsTyping(false);
+
         if (kDebugMode) {
           print('Failed to ask question: ${response.statusCode}');
         }
       }
     } catch (e) {
+      provider.setIsTyping(false);
+
       if (kDebugMode) {
         print('Error: $e');
       }
@@ -124,7 +139,6 @@ class _ChatPageState extends State<ChatPage> {
       if (result != null && result.files.isNotEmpty) {
         PlatformFile file = result.files.first;
 
-        // String url = 'http://0.0.0.0:8000/create_session';
         String url = 'http://127.0.0.1:5000/create_session';
         var request = http.MultipartRequest('POST', Uri.parse(url));
 
@@ -162,7 +176,6 @@ class _ChatPageState extends State<ChatPage> {
             Navigator.of(context).pop();
           }
         } else {
-          // Handle error
           if (kDebugMode) {
             print('Failed to create session: ${response.statusCode}');
           }
@@ -294,13 +307,18 @@ class _ChatPageState extends State<ChatPage> {
                                       ),
                           ),
                           if (_selectedOption == 'Messages')
+                            // Message is Sent
                             MessageInput(
                               controller: _controller,
                               sendMessage: () {
-                                _askQuestion(
-                                  question: _controller.text,
-                                  sessionId: _selectedSessionID,
-                                );
+                                final message = _controller.text.trim();
+                                if (message.isNotEmpty) {
+                                  _askQuestion(
+                                    question: message,
+                                    sessionId: _selectedSessionID,
+                                  );
+                                  _controller.clear();
+                                }
                               },
                             ),
                         ],
@@ -353,12 +371,4 @@ class ChooseModelTab extends StatelessWidget {
       ),
     );
   }
-}
-
-class ChatMessage {
-  final String? text;
-  final PlatformFile? file;
-  final bool isUserMessage;
-
-  ChatMessage({this.text, this.file, this.isUserMessage = true});
 }
