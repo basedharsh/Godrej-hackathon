@@ -8,6 +8,7 @@ import 'package:godrage/globals.dart';
 import 'package:godrage/history_section.dart';
 import 'package:godrage/message_input.dart';
 import 'package:godrage/message_tab.dart';
+import 'package:godrage/pinned_tab.dart';
 import 'package:godrage/providers/session_provider.dart';
 import 'package:godrage/sidebar.dart';
 import 'package:godrage/utils/get_uuid.dart';
@@ -334,23 +335,6 @@ class _ChatPageState extends State<ChatPage> {
             ],
           );
         },
-      ),
-    );
-  }
-}
-
-class PinnedMessageTab extends StatelessWidget {
-  final String sessionID;
-
-  const PinnedMessageTab({super.key, required this.sessionID});
-
-  @override
-  Widget build(BuildContext context) {
-    // Replace with the actual pinned message UI
-    return Center(
-      child: Text(
-        'Pinned Messages for Session: $sessionID',
-        style: AppTheme.fontStyleLarge,
       ),
     );
   }

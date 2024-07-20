@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:godrage/Models/chat_model.dart';
+import 'package:godrage/app_theme.dart';
 import 'package:godrage/globals.dart';
 import 'package:godrage/providers/message_tab_provider.dart';
 import 'package:godrage/providers/session_provider.dart';
@@ -33,7 +34,11 @@ class _MessagesTabState extends State<MessagesTab> {
   @override
   Widget build(BuildContext context) {
     if (widget.sessionID.isEmpty) {
-      return const Center(child: Text("Invalid session ID."));
+      return Container(
+          color: AppTheme.backgroundColor,
+          child: const Center(
+              child: Text("Waiting for session...",
+                  style: TextStyle(color: AppTheme.textColor))));
     }
 
     final chatStream =
@@ -44,21 +49,40 @@ class _MessagesTabState extends State<MessagesTab> {
       builder: (BuildContext context,
           AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return Container(
+            color: AppTheme.backgroundColor,
+            child: const Center(
+                child: CircularProgressIndicator(color: AppTheme.textColor)),
+          );
         }
 
         if (snapshot.hasError) {
-          return const Center(child: Text("Error loading messages."));
+          return Container(
+            color: AppTheme.backgroundColor,
+            child: const Center(
+                child: Text("Error loading messages.",
+                    style: TextStyle(color: AppTheme.textColor))),
+          );
         }
 
         if (!snapshot.hasData ||
             snapshot.data == null ||
             snapshot.data!.data() == null) {
-          return const Center(child: Text("No messages found."));
+          return Container(
+            color: AppTheme.backgroundColor,
+            child: const Center(
+                child: Text("No messages found.",
+                    style: TextStyle(color: AppTheme.textColor))),
+          );
         }
         final sessionData = snapshot.data!.data();
         if (sessionData == null) {
-          return const Center(child: Text("No messages found."));
+          return Container(
+            color: AppTheme.backgroundColor,
+            child: const Center(
+                child: Text("No messages found.",
+                    style: TextStyle(color: AppTheme.textColor))),
+          );
         }
 
         final messages =
@@ -84,44 +108,49 @@ class _MessagesTabState extends State<MessagesTab> {
               .updateMessages(messages);
         });
 
-        return Consumer<MessagesTabProvider>(
-          builder: (context, provider, child) {
-            return ListView.builder(
-              controller: provider.scrollController,
-              itemCount: provider.messages.length + (provider.isTyping ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index == provider.messages.length && provider.isTyping) {
-                  return _buildTypingIndicator();
-                }
+        return Container(
+          color: AppTheme.backgroundColor, // Set the background color to black
+          child: Consumer<MessagesTabProvider>(
+            builder: (context, provider, child) {
+              return ListView.builder(
+                controller: provider.scrollController,
+                itemCount:
+                    provider.messages.length + (provider.isTyping ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index == provider.messages.length && provider.isTyping) {
+                    return _buildTypingIndicator();
+                  }
 
-                final message = provider.messages[index];
-                return InkWell(
-                  onLongPress: () {
-                    if (!message.isUserMessage) {
-                      if (kDebugMode) {
-                        print("Favourite");
+                  final message = provider.messages[index];
+                  return InkWell(
+                    onLongPress: () {
+                      if (!message.isUserMessage) {
+                        if (kDebugMode) {
+                          print("Favourite");
+                        }
+
+                        favouritesRef.doc().set({
+                          'message': message.message,
+                          'createdAt': DateTime.now(),
+                          'session_id': widget.sessionID,
+                        });
                       }
-
-                      favouritesRef.doc().set({
-                        'message': message.message,
-                        'createdAt': DateTime.now(),
-                        'session_id': widget.sessionID,
-                      });
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Align(
-                      alignment: message.isUserMessage
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
-                      child: _buildMessage(message, index, provider),
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 8.0, horizontal: 16.0),
+                      child: Align(
+                        alignment: message.isUserMessage
+                            ? Alignment.centerRight
+                            : Alignment.centerLeft,
+                        child: _buildMessage(message, index, provider),
+                      ),
                     ),
-                  ),
-                );
-              },
-            );
-          },
+                  );
+                },
+              );
+            },
+          ),
         );
       },
     );
@@ -131,7 +160,8 @@ class _MessagesTabState extends State<MessagesTab> {
       ChatMessage message, int index, MessagesTabProvider provider) {
     return ConstrainedBox(
       constraints: BoxConstraints(
-        maxWidth: MediaQuery.of(context).size.width * 0.75,
+        maxWidth:
+            MediaQuery.of(context).size.width * 0.40, //width of chat bubble
       ),
       child: Column(
         crossAxisAlignment: message.isUserMessage
@@ -145,11 +175,11 @@ class _MessagesTabState extends State<MessagesTab> {
             decoration: BoxDecoration(
               color: provider.highlightedIndex == index
                   ? (message.isUserMessage
-                      ? Colors.blue[200]
-                      : Colors.green[100])
+                      ? AppTheme.userMessageHighlightedBackgroundColor
+                      : AppTheme.botMessageBackgroundColor)
                   : (message.isUserMessage
-                      ? Colors.blue[100]
-                      : Colors.green[50]),
+                      ? AppTheme.userMessageBackgroundColor
+                      : AppTheme.botMessageBackgroundColor),
               borderRadius: message.isUserMessage
                   ? const BorderRadius.only(
                       topLeft: Radius.circular(15.0),
@@ -174,7 +204,7 @@ class _MessagesTabState extends State<MessagesTab> {
                 ? Text(
                     message.message,
                     style: const TextStyle(
-                      color: Colors.black,
+                      color: AppTheme.textColor, // Set text color to white
                     ),
                   )
                 : const SizedBox.shrink(),
@@ -197,7 +227,7 @@ class _MessagesTabState extends State<MessagesTab> {
               maxWidth: MediaQuery.of(context).size.width * 0.50,
             ),
             decoration: BoxDecoration(
-              color: Colors.green[50],
+              color: AppTheme.typingIndicatorBackgroundColor,
               borderRadius: const BorderRadius.only(
                 topRight: Radius.circular(15.0),
                 bottomLeft: Radius.circular(15.0),
@@ -212,18 +242,18 @@ class _MessagesTabState extends State<MessagesTab> {
                 ),
               ],
             ),
-            child: Row(
+            child: const Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 CircleAvatar(
-                  backgroundColor: Colors.green[300],
-                  child: const Icon(
+                  backgroundColor: AppTheme.circleAvatarBackgroundColor,
+                  child: Icon(
                     Icons.smart_toy_outlined,
-                    color: Colors.white,
+                    color: AppTheme.circleAvatarIconColor,
                   ),
                 ),
-                const SizedBox(width: 8.0),
-                const Expanded(
+                SizedBox(width: 8.0),
+                Expanded(
                   child: TypingIndicator(),
                 ),
               ],
