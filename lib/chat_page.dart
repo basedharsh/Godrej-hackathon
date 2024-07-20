@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:godrage/app_theme.dart';
+import 'package:godrage/globals.dart';
 import 'package:godrage/history_section.dart';
 import 'package:godrage/message_input.dart';
 import 'package:godrage/message_tab.dart';
@@ -54,6 +56,14 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void> _askQuestion(
       {required String sessionId, required String question}) async {
+    sessionsRef.doc(sessionId).update({
+      'chat_history': FieldValue.arrayUnion([
+        {
+          'message': question,
+          'isUser': true,
+        }
+      ])
+    });
     try {
       final response = await http.post(
         // Uri.parse('http://0.0.0.0:8000/ask_question'),
