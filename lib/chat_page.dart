@@ -55,6 +55,7 @@ class _ChatPageState extends State<ChatPage> {
       {required String sessionId, required String question}) async {
     try {
       final response = await http.post(
+        // Uri.parse('http://0.0.0.0:8000/ask_question'),
         Uri.parse('http://127.0.0.1:5000/ask_question'),
         headers: {
           'Content-Type': 'application/json',
@@ -131,25 +132,26 @@ class _ChatPageState extends State<ChatPage> {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['pdf'],
+        allowedExtensions: ['pdf', 'doc', 'docx', 'ppt', 'pptx'],
       );
 
       if (result != null && result.files.isNotEmpty) {
         PlatformFile file = result.files.first;
 
+        // String url = 'http://0.0.0.0:8000/create_session';
         String url = 'http://127.0.0.1:5000/create_session';
         var request = http.MultipartRequest('POST', Uri.parse(url));
 
         request.fields['chat_name'] = chatName;
         if (file.bytes != null) {
           request.files.add(http.MultipartFile.fromBytes(
-            'pdfs',
+            'files',
             file.bytes!,
             filename: file.name,
           ));
         } else if (file.path != null) {
           request.files.add(await http.MultipartFile.fromPath(
-            'pdfs',
+            'files',
             file.path!,
             filename: file.name,
           ));
@@ -197,7 +199,7 @@ class _ChatPageState extends State<ChatPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                  'Please enter a chat name and upload a PDF file to create a new chat.'),
+                  'Please enter a chat name and upload a document to create a new chat.'),
               TextField(
                 controller: _newChatNameController,
                 decoration: const InputDecoration(
