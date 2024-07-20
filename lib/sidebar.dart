@@ -4,13 +4,13 @@ import 'package:provider/provider.dart';
 import 'package:godrage/providers/session_provider.dart';
 
 class Sidebar extends StatelessWidget {
-  final String selectedChat;
+  final String selectedSessionID;
   final Function(String) selectChat;
   final VoidCallback addNewChat;
 
   const Sidebar({
     super.key,
-    required this.selectedChat,
+    required this.selectedSessionID,
     required this.selectChat,
     required this.addNewChat,
   });
@@ -50,8 +50,8 @@ class Sidebar extends StatelessWidget {
                 return SidebarItem(
                   icon: Icons.chat,
                   text: chatName,
-                  isSelected: selectedChat == chatName,
-                  onTap: () => selectChat(chatName),
+                  isSelected: selectedSessionID == session['id'],
+                  onTap: () => selectChat(session['id']),
                 );
               },
             ),

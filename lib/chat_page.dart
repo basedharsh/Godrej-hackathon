@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:godrage/app_theme.dart';
@@ -21,21 +22,9 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  String _selectedChat = 'Chat 1';
+  String _selectedSessionID = '';
   final TextEditingController _controller = TextEditingController();
   final TextEditingController _newChatNameController = TextEditingController();
-  final Map<String, List<ChatMessage>> _chatMessages = {
-    'Chat 1': [ChatMessage(text: 'Hello!'), ChatMessage(text: 'How are you?')],
-    'Chat 2': [
-      ChatMessage(text: 'Hi there!'),
-      ChatMessage(text: 'What\'s up?')
-    ],
-    'Chat 3': [
-      ChatMessage(text: 'Hey!'),
-      ChatMessage(text: 'Long time no see!')
-    ],
-  };
-  late List<ChatMessage> _messages = [];
 
   final ScrollController _scrollController = ScrollController();
 
@@ -48,12 +37,10 @@ class _ChatPageState extends State<ChatPage> {
   void init() async {
     await context.read<SessionProvider>().getSessions();
     setState(() {
-      _selectedChat = context.read<SessionProvider>().sessions.isNotEmpty
-          ? context.read<SessionProvider>().sessions.first['chat']
-          : 'Chat 1';
-      _messages = _chatMessages[_selectedChat] ?? [];
+      _selectedSessionID = context.read<SessionProvider>().sessions.isNotEmpty
+          ? context.read<SessionProvider>().sessions.first['id']
+          : '';
     });
-    print("init");
   }
 
   @override
@@ -64,65 +51,75 @@ class _ChatPageState extends State<ChatPage> {
     super.dispose();
   }
 
-  void _sendMessage() {
-    if (_controller.text.isNotEmpty) {
-      setState(() {
-        _messages.add(ChatMessage(text: _controller.text, isUserMessage: true));
-        _chatMessages[_selectedChat] = _messages;
-        _controller.clear();
-      });
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
+  Future<void> _askQuestion(
+      {required String sessionId, required String question}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('http://127.0.0.1:5000/ask_question'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'session_id': sessionId,
+          'question': question,
+        }),
       );
 
-      // Simulate an automatic reply after sending a message
-      Future.delayed(const Duration(seconds: 1), () {
-        setState(() {
-          _messages.add(ChatMessage(
-              text: 'This is an automatic reply.', isUserMessage: false));
-          _chatMessages[_selectedChat] = _messages;
-        });
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        final chatHistory = responseData['chat_history'];
+
+        if (kDebugMode) {
+          print(chatHistory);
+        }
+
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOut,
         );
-      });
+      } else {
+        // Handle error
+        if (kDebugMode) {
+          print('Failed to ask question: ${response.statusCode}');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error: $e');
+      }
     }
   }
 
-  void _sendFile(FilePickerResult result) {
-    setState(() {
-      _messages.add(ChatMessage(file: result.files.first, isUserMessage: true));
-      _chatMessages[_selectedChat] = _messages;
-    });
-    _scrollController.animateTo(
-      _scrollController.position.maxScrollExtent,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-    );
+  // void _sendFile(FilePickerResult result) {
+  //   setState(() {
+  //     _messages.add(ChatMessage(file: result.files.first, isUserMessage: true));
+  //     _chatMessages[_selectedChat] = _messages;
+  //   });
+  //   _scrollController.animateTo(
+  //     _scrollController.position.maxScrollExtent,
+  //     duration: const Duration(milliseconds: 300),
+  //     curve: Curves.easeOut,
+  //   );
 
-    // Simulate an automatic reply after sending a file
-    Future.delayed(const Duration(seconds: 1), () {
-      setState(() {
-        _messages
-            .add(ChatMessage(text: 'File received!', isUserMessage: false));
-        _chatMessages[_selectedChat] = _messages;
-      });
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    });
-  }
+  //   // Simulate an automatic reply after sending a file
+  //   Future.delayed(const Duration(seconds: 1), () {
+  //     setState(() {
+  //       _messages
+  //           .add(ChatMessage(text: 'File received!', isUserMessage: false));
+  //       _chatMessages[_selectedChat] = _messages;
+  //     });
+  //     _scrollController.animateTo(
+  //       _scrollController.position.maxScrollExtent,
+  //       duration: const Duration(milliseconds: 300),
+  //       curve: Curves.easeOut,
+  //     );
+  //   });
+  // }
 
-  void _selectChat(String chatName) {
+  void _selectSession(String sessionID) {
     setState(() {
-      _selectedChat = chatName;
-      _messages = _chatMessages[chatName] ?? [];
+      _selectedSessionID = sessionID;
     });
     if (MediaQuery.of(context).size.width < 600) {
       Navigator.pop(context); // Close the drawer on mobile
@@ -130,6 +127,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future<void> _addNewChat(String chatName) async {
+    final sessionProvider = context.read<SessionProvider>();
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -139,12 +137,10 @@ class _ChatPageState extends State<ChatPage> {
       if (result != null && result.files.isNotEmpty) {
         PlatformFile file = result.files.first;
 
-        // Local Flask server URL
         String url = 'http://127.0.0.1:5000/create_session';
-
         var request = http.MultipartRequest('POST', Uri.parse(url));
 
-        // Handle file content for web
+        request.fields['chat_name'] = chatName;
         if (file.bytes != null) {
           request.files.add(http.MultipartFile.fromBytes(
             'pdfs',
@@ -158,7 +154,9 @@ class _ChatPageState extends State<ChatPage> {
             filename: file.name,
           ));
         } else {
-          print('File not supported');
+          if (kDebugMode) {
+            print('File not supported');
+          }
           return;
         }
 
@@ -167,22 +165,25 @@ class _ChatPageState extends State<ChatPage> {
         if (response.statusCode == 200) {
           var responseData = await http.Response.fromStream(response);
           var responseJson = json.decode(responseData.body);
-          print('Response from server: $responseJson');
+          if (kDebugMode) {
+            print('Response from server: $responseJson');
+          }
+          sessionProvider.addSession(responseJson);
 
-          setState(() {
-            context.read<SessionProvider>().getSessions();
-            _selectedChat = chatName;
-            _messages = [];
-          });
-
-          Navigator.of(context).pop();
+          if (mounted) {
+            Navigator.of(context).pop();
+          }
         } else {
           // Handle error
-          print('Failed to create session: ${response.statusCode}');
+          if (kDebugMode) {
+            print('Failed to create session: ${response.statusCode}');
+          }
         }
       }
     } catch (e) {
-      print('Error: $e');
+      if (kDebugMode) {
+        print('Error: $e');
+      }
     }
   }
 
@@ -191,15 +192,15 @@ class _ChatPageState extends State<ChatPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Add New Chat'),
+          title: const Text('Add New Chat'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
+              const Text(
                   'Please enter a chat name and upload a PDF file to create a new chat.'),
               TextField(
                 controller: _newChatNameController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'Chat Name',
                 ),
               ),
@@ -207,15 +208,14 @@ class _ChatPageState extends State<ChatPage> {
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text('Upload'),
+              child: const Text('Upload'),
               onPressed: () async {
-                Navigator.of(context).pop();
                 await _addNewChat(_newChatNameController.text);
               },
             ),
@@ -250,8 +250,8 @@ class _ChatPageState extends State<ChatPage> {
       drawer: showDrawer
           ? Drawer(
               child: Sidebar(
-                selectedChat: _selectedChat,
-                selectChat: _selectChat,
+                selectedSessionID: _selectedSessionID,
+                selectChat: _selectSession,
                 addNewChat: _showAddChatDialog,
               ),
             )
@@ -263,8 +263,8 @@ class _ChatPageState extends State<ChatPage> {
             children: <Widget>[
               if (showSidebar)
                 Sidebar(
-                  selectedChat: _selectedChat,
-                  selectChat: _selectChat,
+                  selectedSessionID: _selectedSessionID,
+                  selectChat: _selectSession,
                   addNewChat: _showAddChatDialog,
                 ),
               Expanded(
@@ -289,14 +289,19 @@ class _ChatPageState extends State<ChatPage> {
                         children: <Widget>[
                           Expanded(
                             child: MessagesTab(
-                              messages: _messages,
                               scrollController: _scrollController,
+                              sessionID: _selectedSessionID,
                             ),
                           ),
                           MessageInput(
                             controller: _controller,
-                            sendMessage: _sendMessage,
-                            sendFile: _sendFile,
+                            sendMessage: () {
+                              _askQuestion(
+                                question: _controller.text,
+                                sessionId: _selectedSessionID,
+                              );
+                            },
+                            // sendFile: (){},
                           ),
                         ],
                       ),

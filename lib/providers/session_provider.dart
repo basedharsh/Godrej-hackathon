@@ -7,15 +7,26 @@ class SessionProvider extends ChangeNotifier {
 
   Future<void> getSessions() async {
     try {
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection('sessions')
-          .orderBy('created_at', descending: true)
-          .get();
+      final querySnapshot =
+          await FirebaseFirestore.instance.collection('sessions').get();
 
       _sessions = querySnapshot.docs.map((doc) => doc.data()).toList();
       notifyListeners();
     } catch (e) {
       print("Error fetching sessions: $e");
     }
+  }
+
+  Stream<DocumentSnapshot<Map<String, dynamic>>> getSessionStream(
+      String sessionID) {
+    return FirebaseFirestore.instance
+        .collection('sessions')
+        .doc(sessionID)
+        .snapshots();
+  }
+
+  void addSession(Map<String, dynamic> session) {
+    _sessions.insert(0, session);
+    notifyListeners();
   }
 }
