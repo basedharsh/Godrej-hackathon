@@ -22,9 +22,8 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   String _selectedChat = 'Chat 1';
-  final List<String> _chatList = ['Chat 1', 'Chat 2', 'Chat 3'];
   final TextEditingController _controller = TextEditingController();
-  final TextEditingController _newChatController = TextEditingController();
+  final TextEditingController _newChatNameController = TextEditingController();
   final Map<String, List<ChatMessage>> _chatMessages = {
     'Chat 1': [ChatMessage(text: 'Hello!'), ChatMessage(text: 'How are you?')],
     'Chat 2': [
@@ -36,7 +35,7 @@ class _ChatPageState extends State<ChatPage> {
       ChatMessage(text: 'Long time no see!')
     ],
   };
-  late List<ChatMessage> _messages;
+  late List<ChatMessage> _messages = [];
 
   final ScrollController _scrollController = ScrollController();
 
@@ -47,15 +46,20 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void init() async {
-    _messages = _chatMessages[_selectedChat] ?? [];
     await context.read<SessionProvider>().getSessions();
+    setState(() {
+      _selectedChat = context.read<SessionProvider>().sessions.isNotEmpty
+          ? context.read<SessionProvider>().sessions.first['chat']
+          : 'Chat 1';
+      _messages = _chatMessages[_selectedChat] ?? [];
+    });
     print("init");
   }
 
   @override
   void dispose() {
     _controller.dispose();
-    _newChatController.dispose();
+    _newChatNameController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -125,7 +129,7 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  Future<void> _addNewChat() async {
+  Future<void> _addNewChat(String chatName) async {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -163,15 +167,12 @@ class _ChatPageState extends State<ChatPage> {
         if (response.statusCode == 200) {
           var responseData = await http.Response.fromStream(response);
           var responseJson = json.decode(responseData.body);
-          String newChatName = 'Chat ${_chatList.length + 1}';
           print('Response from server: $responseJson');
 
           setState(() {
-            _chatList.add(newChatName);
-            _chatMessages[newChatName] = [];
-            _selectedChat = newChatName;
+            context.read<SessionProvider>().getSessions();
+            _selectedChat = chatName;
             _messages = [];
-            _newChatController.clear();
           });
 
           Navigator.of(context).pop();
@@ -183,6 +184,45 @@ class _ChatPageState extends State<ChatPage> {
     } catch (e) {
       print('Error: $e');
     }
+  }
+
+  void _showAddChatDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Add New Chat'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                  'Please enter a chat name and upload a PDF file to create a new chat.'),
+              TextField(
+                controller: _newChatNameController,
+                decoration: InputDecoration(
+                  hintText: 'Chat Name',
+                ),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Upload'),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _addNewChat(_newChatNameController.text);
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -210,10 +250,9 @@ class _ChatPageState extends State<ChatPage> {
       drawer: showDrawer
           ? Drawer(
               child: Sidebar(
-                chatList: _chatList,
                 selectedChat: _selectedChat,
                 selectChat: _selectChat,
-                addNewChat: _addNewChat,
+                addNewChat: _showAddChatDialog,
               ),
             )
           : null,
@@ -224,22 +263,19 @@ class _ChatPageState extends State<ChatPage> {
             children: <Widget>[
               if (showSidebar)
                 Sidebar(
-                  chatList: _chatList,
                   selectedChat: _selectedChat,
                   selectChat: _selectChat,
-                  addNewChat: _addNewChat,
+                  addNewChat: _showAddChatDialog,
                 ),
               Expanded(
                 child: Container(
                   color: AppTheme.colorDarkGrey,
                   child: Center(
                     child: Container(
-                      margin: const EdgeInsets.all(
-                          16.0), // Margin around the container
+                      margin: const EdgeInsets.all(16.0),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius:
-                            BorderRadius.circular(16.0), // Rounded corners
+                        borderRadius: BorderRadius.circular(16.0),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.grey.withOpacity(0.5),

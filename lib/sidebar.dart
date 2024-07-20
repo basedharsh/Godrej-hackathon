@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:godrage/app_theme.dart';
+import 'package:provider/provider.dart';
+import 'package:godrage/providers/session_provider.dart';
 
 class Sidebar extends StatelessWidget {
-  final List<String> chatList;
   final String selectedChat;
   final Function(String) selectChat;
   final VoidCallback addNewChat;
 
   const Sidebar({
     super.key,
-    required this.chatList,
     required this.selectedChat,
     required this.selectChat,
     required this.addNewChat,
@@ -17,6 +17,8 @@ class Sidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sessions = context.watch<SessionProvider>().sessions;
+
     return Container(
       width: 250,
       color: AppTheme.colorDarkGrey,
@@ -27,7 +29,7 @@ class Sidebar extends StatelessWidget {
             child: Row(
               children: [
                 Image.asset(
-                  'assets/logo.png', // Replace with your logo asset path
+                  'assets/logo.png',
                   height: 30,
                 ),
                 const SizedBox(width: 8.0),
@@ -39,14 +41,21 @@ class Sidebar extends StatelessWidget {
             ),
           ),
           const Divider(color: Colors.grey),
-          for (String chat in chatList)
-            SidebarItem(
-              icon: Icons.chat,
-              text: chat,
-              isSelected: selectedChat == chat,
-              onTap: () => selectChat(chat),
+          Expanded(
+            child: ListView.builder(
+              itemCount: sessions.length,
+              itemBuilder: (context, index) {
+                final session = sessions[index];
+                final chatName = session['name'] ?? 'Unknown Chat';
+                return SidebarItem(
+                  icon: Icons.chat,
+                  text: chatName,
+                  isSelected: selectedChat == chatName,
+                  onTap: () => selectChat(chatName),
+                );
+              },
             ),
-          const Spacer(),
+          ),
           ElevatedButton(
             onPressed: addNewChat,
             child: const Text('Add New Chat'),

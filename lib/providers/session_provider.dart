@@ -13,10 +13,6 @@ class SessionProvider extends ChangeNotifier {
           .get();
 
       _sessions = querySnapshot.docs.map((doc) => doc.data()).toList();
-      print("sessions: $_sessions");
-      for (var doc in querySnapshot.docs) {
-        print(doc.data());
-      }
       notifyListeners();
     } catch (e) {
       print("Error fetching sessions: $e");
