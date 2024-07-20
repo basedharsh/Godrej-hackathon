@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
+// import 'package:file_picker/file_picker.dart';
 
 class MessageInput extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback sendMessage;
-  final Function(FilePickerResult) sendFile;
+  // final Function(FilePickerResult) sendFile;
 
   const MessageInput({
     super.key,
     required this.controller,
     required this.sendMessage,
-    required this.sendFile,
+    // required this.sendFile,
   });
 
   @override
@@ -19,16 +19,16 @@ class MessageInput extends StatelessWidget {
       padding: const EdgeInsets.all(8.0),
       child: Row(
         children: <Widget>[
-          IconButton(
-            icon: const Icon(Icons.document_scanner_outlined),
-            onPressed: () async {
-              FilePickerResult? result = await FilePicker.platform.pickFiles();
-              if (result != null) {
-                sendFile(result);
-              }
-            },
-            tooltip: 'Upload',
-          ),
+          // IconButton(
+          //   icon: const Icon(Icons.document_scanner_outlined),
+          //   onPressed: () async {
+          //     FilePickerResult? result = await FilePicker.platform.pickFiles();
+          //     if (result != null) {
+          //       sendFile(result);
+          //     }
+          //   },
+          //   tooltip: 'Upload',
+          // ),
           const SizedBox(width: 8.0),
           Expanded(
             child: TextField(

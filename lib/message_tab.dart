@@ -1,90 +1,110 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart';
-import 'package:godrage/chat_page.dart';
-import 'package:open_file/open_file.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:godrage/providers/session_provider.dart';
+import 'package:provider/provider.dart';
 
 class MessagesTab extends StatelessWidget {
-  final List<ChatMessage> messages;
   final ScrollController scrollController;
+  final String sessionID;
 
   const MessagesTab({
     super.key,
-    required this.messages,
     required this.scrollController,
+    required this.sessionID,
   });
-
-  void _openPdfFile(BuildContext context, String path) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PDFView(
-          filePath: path,
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      controller: scrollController,
-      itemCount: messages.length,
-      itemBuilder: (context, index) {
-        final message = messages[index];
-        return Align(
-          alignment: message.isUserMessage
-              ? Alignment.centerRight
-              : Alignment.centerLeft,
-          child: Container(
-            padding: const EdgeInsets.all(12.0),
-            margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 16.0),
-            decoration: BoxDecoration(
-              color:
-                  message.isUserMessage ? Colors.white : Colors.grey.shade200,
-              borderRadius: BorderRadius.circular(8.0),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.5),
-                  spreadRadius: 2,
-                  blurRadius: 5,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: message.file != null
-                ? InkWell(
-                    onTap: () {
-                      if (kIsWeb) {
-                        // Web handling can be added here
-                      } else {
-                        if (message.file!.extension == 'pdf') {
-                          _openPdfFile(context, message.file!.path!);
-                        } else {
-                          OpenFile.open(message.file!.path);
-                        }
-                      }
-                    },
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(Icons.insert_drive_file, color: Colors.blue),
-                        const SizedBox(height: 8.0),
-                        Text(
-                          message.file!.name,
-                          style: const TextStyle(
-                              fontSize: 16, color: Colors.black),
+    if (sessionID.isEmpty) {
+      return const Center(child: Text("Invalid session ID."));
+    }
+
+    final chatStream =
+        context.read<SessionProvider>().getSessionStream(sessionID);
+
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        stream: chatStream,
+        builder: (BuildContext context,
+            AsyncSnapshot<DocumentSnapshot<Map<String, dynamic>>> snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return const Center(child: Text("Error loading messages."));
+          }
+
+          if (!snapshot.hasData || snapshot.data == null) {
+            return const Center(child: Text("No messages found."));
+          }
+
+          final sessionData = snapshot.data!.data();
+          if (sessionData == null) {
+            return const Center(child: Text("No messages found."));
+          }
+
+          final messages =
+              (sessionData['chat_history'] as List<dynamic>).map((messageData) {
+            return ChatMessage.fromFirestore(messageData);
+          }).toList();
+
+          return ListView.builder(
+            controller: scrollController,
+            itemCount: messages.length,
+            itemBuilder: (context, index) {
+              final message = messages[index];
+              return Container(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: message.isUserMessage
+                      ? MainAxisAlignment.end
+                      : MainAxisAlignment.start,
+                  children: <Widget>[
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.all(12.0),
+                        margin: const EdgeInsets.symmetric(vertical: 4.0),
+                        decoration: BoxDecoration(
+                          color: message.isUserMessage
+                              ? Colors.blue.shade100
+                              : Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(8.0),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              spreadRadius: 2,
+                              blurRadius: 5,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
                         ),
-                      ],
+                        child: Text(
+                          message.message,
+                          style: TextStyle(
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
                     ),
-                  )
-                : Text(
-                    message.text!,
-                    style: const TextStyle(fontSize: 16, color: Colors.black),
-                  ),
-          ),
-        );
-      },
+                  ],
+                ),
+              );
+            },
+          );
+        });
+  }
+}
+
+class ChatMessage {
+  final String message;
+  final bool isUserMessage;
+
+  ChatMessage({required this.message, required this.isUserMessage});
+
+  factory ChatMessage.fromFirestore(Map<String, dynamic> data) {
+    return ChatMessage(
+      message: data['message'] ?? '',
+      isUserMessage: data['isUser'] ?? false,
     );
   }
 }
