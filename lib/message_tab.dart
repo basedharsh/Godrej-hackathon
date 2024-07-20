@@ -104,7 +104,8 @@ class _MessagesTabState extends State<MessagesTab> {
 
                       favouritesRef.doc().set({
                         'message': message.message,
-                        'createdAt': DateTime.now()
+                        'createdAt': DateTime.now(),
+                        'session_id': widget.sessionID,
                       });
                     }
                   },

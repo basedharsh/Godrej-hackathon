@@ -10,6 +10,7 @@ import 'package:godrage/message_input.dart';
 import 'package:godrage/message_tab.dart';
 import 'package:godrage/providers/session_provider.dart';
 import 'package:godrage/sidebar.dart';
+import 'package:godrage/utils/get_uuid.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -60,12 +61,14 @@ class _ChatPageState extends State<ChatPage> {
 
     // Add user's message to the local state
     provider.addMessage(ChatMessage(message: question, isUserMessage: true));
+    String id = getUUID();
 
     sessionsRef.doc(sessionId).update({
       'chat_history': FieldValue.arrayUnion([
         {
           'message': question,
           'isUser': true,
+          'id': id,
         }
       ])
     });
