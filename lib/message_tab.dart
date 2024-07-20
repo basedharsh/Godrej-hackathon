@@ -28,7 +28,6 @@ class _MessagesTabState extends State<MessagesTab> {
     super.initState();
     final provider = Provider.of<MessagesTabProvider>(context, listen: false);
     provider.scrollController = widget.scrollController;
-    provider.simulateIncomingMessage();
   }
 
   @override
@@ -80,8 +79,10 @@ class _MessagesTabState extends State<MessagesTab> {
               );
         });
 
-        Provider.of<MessagesTabProvider>(context, listen: false)
-            .updateMessages(messages);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Provider.of<MessagesTabProvider>(context, listen: false)
+              .updateMessages(messages);
+        });
 
         return Consumer<MessagesTabProvider>(
           builder: (context, provider, child) {

@@ -22,9 +22,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => SessionProvider()),
-        ChangeNotifierProvider(
-            create: (_) =>
-                MessagesTabProvider(scrollController: ScrollController())),
+        ChangeNotifierProvider(create: (_) => MessagesTabProvider()),
       ],
       child: const MaterialApp(
         debugShowCheckedModeBanner: false,
