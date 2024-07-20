@@ -193,10 +193,11 @@ class _MessagesTabState extends State<MessagesTab> {
                     ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.5),
-                  spreadRadius: 2,
+                  color:
+                      const Color.fromARGB(166, 158, 158, 158).withOpacity(0.5),
+                  spreadRadius: 1.5,
                   blurRadius: 5,
-                  offset: const Offset(0, 3),
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),

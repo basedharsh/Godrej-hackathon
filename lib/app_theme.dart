@@ -4,10 +4,11 @@ class AppTheme {
   // main color of our app
   static const Color backgroundColor = Colors.black;
   static const Color userMessageBackgroundColor =
-      Color.fromARGB(255, 255, 60, 0);
+      Color.fromARGB(214, 251, 112, 69);
   static const Color userMessageHighlightedBackgroundColor =
       Color.fromARGB(255, 255, 60, 1);
-  static const Color botMessageBackgroundColor = Colors.black;
+  static const Color botMessageBackgroundColor =
+      Color.fromARGB(255, 37, 37, 37);
   static const Color textColor = Colors.white;
   static const Color typingIndicatorBackgroundColor = Colors.black;
   static const Color typingIndicatorDotColor = Colors.white;
