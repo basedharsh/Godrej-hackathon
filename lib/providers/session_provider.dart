@@ -1,19 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:godrage/globals.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SessionProvider extends ChangeNotifier {
   List<dynamic> _sessions = [];
-  List<dynamic> get session => _sessions;
-
-  final Map<String, dynamic> _currentOrder = {};
-  Map<String, dynamic> get currentOrder => _currentOrder;
+  List<dynamic> get sessions => _sessions;
 
   Future<void> getSessions() async {
-    final querySnapshot =
-        await sessionsRef.orderBy('createdAt', descending: true).get();
-    _sessions = querySnapshot.docs.map((doc) => doc.data()).toList();
-    print("sessions: $_sessions");
-    print(querySnapshot.docs);
-    notifyListeners();
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('sessions')
+          .orderBy('created_at', descending: true)
+          .get();
+
+      _sessions = querySnapshot.docs.map((doc) => doc.data()).toList();
+      print("sessions: $_sessions");
+      for (var doc in querySnapshot.docs) {
+        print(doc.data());
+      }
+      notifyListeners();
+    } catch (e) {
+      print("Error fetching sessions: $e");
+    }
   }
 }
