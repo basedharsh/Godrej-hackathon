@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/widgets.dart';
 import 'package:godrage/Models/chat_model.dart';
 import 'package:godrage/Screens/sidebar.dart';
 import 'package:godrage/theme/app_theme.dart';
@@ -192,7 +193,7 @@ class _ChatPageState extends State<ChatPage> {
           Navigator.of(context).pop(); // Hide the loader
 
           // Refresh the page
-          reloadPage();
+          // reloadPage();
         } else {
           if (kDebugMode) {
             print('Failed to create session: ${response.statusCode}');
@@ -214,8 +215,7 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  void _showAddChatDialog() {
-    BuildContext context = this.context;
+  void _showAddChatDialog(BuildContext context) {
     final TextEditingController _newChatNameController =
         TextEditingController();
 
@@ -330,7 +330,9 @@ class _ChatPageState extends State<ChatPage> {
                   child: Sidebar(
                     selectedSessionID: _selectedSessionID,
                     selectChat: _selectSession,
-                    addNewChat: _showAddChatDialog,
+                    addNewChat: () {
+                      _showAddChatDialog(context);
+                    },
                   ),
                 ),
               ),
@@ -345,7 +347,9 @@ class _ChatPageState extends State<ChatPage> {
                 Sidebar(
                   selectedSessionID: _selectedSessionID,
                   selectChat: _selectSession,
-                  addNewChat: _showAddChatDialog,
+                  addNewChat: () {
+                    _showAddChatDialog(context);
+                  },
                 ),
               Expanded(
                 child: Container(
