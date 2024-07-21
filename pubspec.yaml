@@ -46,6 +46,7 @@ dependencies:
   google_generative_ai: ^0.4.3
   flutter_link_previewer: ^3.2.2
   uuid: ^4.4.2
+  flutter_markdown: ^0.7.3
 
 dev_dependencies:
   flutter_test:

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:godrage/Models/chat_model.dart';
-import 'package:godrage/app_theme.dart';
+import 'package:godrage/theme/app_theme.dart';
 import 'package:godrage/providers/session_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';

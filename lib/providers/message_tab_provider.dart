@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:godrage/Models/chat_model.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MessagesTabProvider extends ChangeNotifier {
   bool isTyping = false;
   int? highlightedIndex;
   late ScrollController scrollController;
   List<ChatMessage> messages = [];
-  int? pinOptionIndex;
-  Set<int> favoritedMessages = {}; // Track favorited messages by their index
+  Set<int> likedMessages = {}; // Track liked messages by their index
 
   void simulateIncomingMessage() {
     isTyping = true;
@@ -24,11 +22,6 @@ class MessagesTabProvider extends ChangeNotifier {
         notifyListeners();
       });
     });
-  }
-
-  void showPinOption(int index, bool show) {
-    pinOptionIndex = show ? index : null;
-    notifyListeners();
   }
 
   void updateMessages(List<ChatMessage> newMessages) {
@@ -52,54 +45,16 @@ class MessagesTabProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool isMessageFavorited(int index) {
-    return favoritedMessages.contains(index);
+  bool isMessageLiked(int index) {
+    return likedMessages.contains(index);
   }
 
-  void toggleFavorite(int index, String messageContent, String sessionId) {
-    if (favoritedMessages.contains(index)) {
-      favoritedMessages.remove(index);
-      _updateFavoriteStatusInFirestore(messageContent, sessionId, false);
+  void toggleLike(int index) {
+    if (likedMessages.contains(index)) {
+      likedMessages.remove(index);
     } else {
-      favoritedMessages.add(index);
-      _updateFavoriteStatusInFirestore(messageContent, sessionId, true);
+      likedMessages.add(index);
     }
     notifyListeners();
-  }
-
-  void loadFavorites(List<ChatMessage> messages, String sessionId) async {
-    final favs = await FirebaseFirestore.instance
-        .collection('sessions')
-        .doc(sessionId)
-        .collection('favorites')
-        .get();
-
-    favoritedMessages.clear();
-    for (var doc in favs.docs) {
-      final messageIndex = messages.indexWhere((msg) => msg.message == doc.id);
-      if (messageIndex != -1) {
-        favoritedMessages.add(messageIndex);
-      }
-    }
-    notifyListeners();
-  }
-
-  void _updateFavoriteStatusInFirestore(
-      String messageContent, String sessionId, bool isFavorited) {
-    final docRef = FirebaseFirestore.instance
-        .collection('sessions')
-        .doc(sessionId)
-        .collection('favorites')
-        .doc(messageContent);
-
-    if (isFavorited) {
-      docRef.set({
-        'messageContent': messageContent,
-        'sessionId': sessionId,
-        'createdAt': DateTime.now(),
-      });
-    } else {
-      docRef.delete();
-    }
   }
 }
