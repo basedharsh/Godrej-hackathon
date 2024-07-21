@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class TypingIndicator extends StatelessWidget {
-  const TypingIndicator({super.key});
+class TypingIndicatorDots extends StatelessWidget {
+  const TypingIndicatorDots({super.key});
 
   @override
   Widget build(BuildContext context) {

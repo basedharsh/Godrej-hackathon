@@ -2,20 +2,24 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/widgets.dart';
 import 'package:godrage/Models/chat_model.dart';
-import 'package:godrage/app_theme.dart';
+import 'package:godrage/Screens/sidebar.dart';
+import 'package:godrage/theme/app_theme.dart';
 import 'package:godrage/globals.dart';
-import 'package:godrage/history_section.dart';
-import 'package:godrage/message_input.dart';
-import 'package:godrage/message_tab.dart';
-import 'package:godrage/pinned_tab.dart';
+import 'package:godrage/Screens/history_section.dart';
+import 'package:godrage/Screens/message_input.dart';
+import 'package:godrage/Screens/message_tab.dart';
+import 'package:godrage/Screens/pinned_tab.dart';
 import 'package:godrage/providers/session_provider.dart';
-import 'package:godrage/sidebar.dart';
 import 'package:godrage/utils/get_uuid.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:godrage/providers/message_tab_provider.dart';
+
+import '../utils/web_util.dart'
+    if (dart.library.io) '../utils/mobile_util.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key, required this.title});
@@ -96,13 +100,10 @@ class _ChatPageState extends State<ChatPage> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           provider.addBotMessage(
               ChatMessage(message: botMessage, isUserMessage: false));
+          if (kIsWeb) {
+            _scrollToBottom();
+          }
         });
-
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
       } else {
         provider.setIsTyping(false);
 
@@ -140,6 +141,20 @@ class _ChatPageState extends State<ChatPage> {
       if (result != null && result.files.isNotEmpty) {
         PlatformFile file = result.files.first;
 
+        // Show the loader
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(
+                    Color.fromARGB(255, 251, 112, 69)),
+              ),
+            );
+          },
+        );
+
         String url = 'http://127.0.0.1:5000/create_session';
         var request = http.MultipartRequest('POST', Uri.parse(url));
 
@@ -160,6 +175,8 @@ class _ChatPageState extends State<ChatPage> {
           if (kDebugMode) {
             print('File not supported');
           }
+          Navigator.of(context)
+              .pop(); // Hide the loader in case of unsupported file
           return;
         }
 
@@ -173,52 +190,96 @@ class _ChatPageState extends State<ChatPage> {
           }
           sessionProvider.addSession(responseJson);
 
-          if (mounted) {
-            Navigator.of(context).pop();
-          }
+          Navigator.of(context).pop(); // Hide the loader
+
+          // Refresh the page
+          // reloadPage();
         } else {
           if (kDebugMode) {
             print('Failed to create session: ${response.statusCode}');
           }
+          Navigator.of(context).pop(); // Hide the loader
+        }
+      } else {
+        if (kDebugMode) {
+          print('No file selected');
         }
       }
     } catch (e) {
+      if (Navigator.canPop(context)) {
+        Navigator.of(context).pop(); // Hide the loader in case of an error
+      }
       if (kDebugMode) {
         print('Error: $e');
       }
     }
   }
 
-  void _showAddChatDialog() {
+  void _showAddChatDialog(BuildContext context) {
+    final TextEditingController _newChatNameController =
+        TextEditingController();
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Add New Chat'),
+          backgroundColor: AppTheme.backgroundColor,
+          title: Text(
+            'Add New Chat',
+            style: AppTheme.fontStyleLarge.copyWith(color: AppTheme.textColor),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                  'Please enter a chat name and upload a document to create a new chat.'),
+              Text(
+                'Please enter a chat name and upload a document to create a new chat.',
+                style: AppTheme.fontStyleDefault
+                    .copyWith(color: AppTheme.textColor),
+              ),
+              const SizedBox(height: 16.0),
               TextField(
                 controller: _newChatNameController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Chat Name',
+                  hintStyle: AppTheme.fontStyleDefault
+                      .copyWith(color: AppTheme.textColor.withOpacity(0.6)),
+                  filled: true,
+                  fillColor: AppTheme.botMessageBackgroundColor,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: 12.0, horizontal: 16.0),
                 ),
+                style: AppTheme.fontStyleDefault
+                    .copyWith(color: AppTheme.textColor),
               ),
             ],
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: Text(
+                'Cancel',
+                style: AppTheme.fontStyleDefault
+                    .copyWith(color: AppTheme.textColor),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
-            TextButton(
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                foregroundColor: AppTheme.textColor,
+                backgroundColor: const Color.fromARGB(255, 251, 112, 69),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
               child: const Text('Upload'),
               onPressed: () async {
                 await _addNewChat(_newChatNameController.text);
+                Navigator.of(context).pop(); // Close the dialog after uploading
               },
             ),
           ],
@@ -233,21 +294,26 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(
+        _scrollController.position.maxScrollExtent,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    bool showDrawer = MediaQuery.of(context).size.width < 600;
+    bool isMobile = MediaQuery.of(context).size.width < 600;
     return Scaffold(
-      appBar: showDrawer
-          ? PreferredSize(
-              preferredSize: const Size.fromHeight(30.0),
-              child: AppBar(
-                backgroundColor: AppTheme.colorDarkGrey,
-                iconTheme: const IconThemeData(color: Colors.white),
-                title: Text(widget.title,
-                    style: AppTheme.fontStyleLarge.copyWith(
-                      color: Colors.white,
-                    )),
-              ),
+      appBar: isMobile
+          ? AppBar(
+              backgroundColor: AppTheme.colorDarkGrey,
+              iconTheme: const IconThemeData(color: Colors.white),
+              title: Text(widget.title,
+                  style: AppTheme.fontStyleLarge.copyWith(
+                    color: Colors.white,
+                  )),
             )
           : PreferredSize(
               preferredSize: const Size.fromHeight(10.0),
@@ -255,12 +321,20 @@ class _ChatPageState extends State<ChatPage> {
                 backgroundColor: AppTheme.colorDarkGrey,
               ),
             ),
-      drawer: showDrawer
+      drawer: isMobile
           ? Drawer(
-              child: Sidebar(
-                selectedSessionID: _selectedSessionID,
-                selectChat: _selectSession,
-                addNewChat: _showAddChatDialog,
+              backgroundColor: AppTheme.colorDarkGrey,
+              child: SafeArea(
+                child: Container(
+                  color: AppTheme.colorDarkGrey,
+                  child: Sidebar(
+                    selectedSessionID: _selectedSessionID,
+                    selectChat: _selectSession,
+                    addNewChat: () {
+                      _showAddChatDialog(context);
+                    },
+                  ),
+                ),
               ),
             )
           : null,
@@ -273,7 +347,9 @@ class _ChatPageState extends State<ChatPage> {
                 Sidebar(
                   selectedSessionID: _selectedSessionID,
                   selectChat: _selectSession,
-                  addNewChat: _showAddChatDialog,
+                  addNewChat: () {
+                    _showAddChatDialog(context);
+                  },
                 ),
               Expanded(
                 child: Container(
@@ -308,7 +384,6 @@ class _ChatPageState extends State<ChatPage> {
                                       ),
                           ),
                           if (_selectedOption == 'Messages')
-                            // Message is Sent
                             MessageInput(
                               controller: _controller,
                               sendMessage: () {
@@ -347,7 +422,6 @@ class ChooseModelTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Replace with the actual choose model UI
     return Center(
       child: Text(
         'Choose Model for Session: $sessionID',

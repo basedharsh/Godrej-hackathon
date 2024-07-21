@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:godrage/app_theme.dart';
+import 'package:godrage/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 import 'package:godrage/providers/session_provider.dart';
 
@@ -21,8 +21,9 @@ class Sidebar extends StatelessWidget {
 
     return Container(
       width: 250,
-      color: AppTheme.colorDarkGrey,
+      color: AppTheme.backgroundColor,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -35,7 +36,8 @@ class Sidebar extends StatelessWidget {
                 const SizedBox(width: 8.0),
                 Text(
                   'God-Rage',
-                  style: AppTheme.fontStyleLarge.copyWith(color: Colors.white),
+                  style: AppTheme.fontStyleLarge
+                      .copyWith(color: AppTheme.textColor),
                 ),
               ],
             ),
@@ -56,17 +58,23 @@ class Sidebar extends StatelessWidget {
               },
             ),
           ),
-          ElevatedButton(
-            onPressed: addNewChat,
-            child: const Text('Add New Chat'),
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+            child: ElevatedButton(
+              onPressed: addNewChat,
+              style: ElevatedButton.styleFrom(
+                foregroundColor: AppTheme.textColor,
+                backgroundColor: const Color.fromARGB(255, 251, 112, 69),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                minimumSize: const Size(double.infinity, 50),
+              ),
+              child: const Text('Add New Chat'),
+            ),
           ),
           const Divider(color: Colors.grey),
-          SidebarItem(
-            icon: Icons.logout,
-            text: 'Log out',
-            isSelected: false,
-            onTap: () {},
-          ),
         ],
       ),
     );
@@ -90,15 +98,20 @@ class SidebarItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color:
-          isSelected ? AppTheme.colorGrey.withOpacity(0.2) : Colors.transparent,
+      color: isSelected
+          ? const Color.fromARGB(255, 251, 112, 69).withOpacity(0.2)
+          : Colors.transparent,
       child: ListTile(
-        leading:
-            Icon(icon, color: isSelected ? AppTheme.colorYellow : Colors.white),
+        leading: Icon(icon,
+            color: isSelected
+                ? const Color.fromARGB(255, 251, 112, 69)
+                : AppTheme.textColor),
         title: Text(
           text,
           style: AppTheme.fontStyleDefault.copyWith(
-            color: isSelected ? AppTheme.colorYellow : Colors.white,
+            color: isSelected
+                ? const Color.fromARGB(255, 251, 112, 69)
+                : AppTheme.textColor,
           ),
         ),
         onTap: onTap,

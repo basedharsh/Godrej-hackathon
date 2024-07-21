@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:godrage/Models/chat_model.dart';
 
@@ -7,6 +6,7 @@ class MessagesTabProvider extends ChangeNotifier {
   int? highlightedIndex;
   late ScrollController scrollController;
   List<ChatMessage> messages = [];
+  Set<int> likedMessages = {}; // Track liked messages by their index
 
   void simulateIncomingMessage() {
     isTyping = true;
@@ -42,6 +42,19 @@ class MessagesTabProvider extends ChangeNotifier {
   void addBotMessage(ChatMessage message) {
     messages.add(message);
     setIsTyping(false);
+    notifyListeners();
+  }
+
+  bool isMessageLiked(int index) {
+    return likedMessages.contains(index);
+  }
+
+  void toggleLike(int index) {
+    if (likedMessages.contains(index)) {
+      likedMessages.remove(index);
+    } else {
+      likedMessages.add(index);
+    }
     notifyListeners();
   }
 }
