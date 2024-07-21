@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:godrage/Models/chat_model.dart';
+import 'package:godrage/Screens/sidebar.dart';
 import 'package:godrage/theme/app_theme.dart';
 import 'package:godrage/globals.dart';
 import 'package:godrage/Screens/history_section.dart';
@@ -10,12 +11,14 @@ import 'package:godrage/Screens/message_input.dart';
 import 'package:godrage/Screens/message_tab.dart';
 import 'package:godrage/Screens/pinned_tab.dart';
 import 'package:godrage/providers/session_provider.dart';
-import 'package:godrage/sidebar.dart';
 import 'package:godrage/utils/get_uuid.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:godrage/providers/message_tab_provider.dart';
+
+import '../utils/web_util.dart'
+    if (dart.library.io) '../utils/mobile_util.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key, required this.title});
@@ -137,6 +140,20 @@ class _ChatPageState extends State<ChatPage> {
       if (result != null && result.files.isNotEmpty) {
         PlatformFile file = result.files.first;
 
+        // Show the loader
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(
+                    Color.fromARGB(255, 251, 112, 69)),
+              ),
+            );
+          },
+        );
+
         String url = 'http://127.0.0.1:5000/create_session';
         var request = http.MultipartRequest('POST', Uri.parse(url));
 
@@ -157,6 +174,8 @@ class _ChatPageState extends State<ChatPage> {
           if (kDebugMode) {
             print('File not supported');
           }
+          Navigator.of(context)
+              .pop(); // Hide the loader in case of unsupported file
           return;
         }
 
@@ -170,16 +189,25 @@ class _ChatPageState extends State<ChatPage> {
           }
           sessionProvider.addSession(responseJson);
 
-          if (mounted) {
-            Navigator.of(context).pop();
-          }
+          Navigator.of(context).pop(); // Hide the loader
+
+          // Refresh the page
+          reloadPage();
         } else {
           if (kDebugMode) {
             print('Failed to create session: ${response.statusCode}');
           }
+          Navigator.of(context).pop(); // Hide the loader
+        }
+      } else {
+        if (kDebugMode) {
+          print('No file selected');
         }
       }
     } catch (e) {
+      if (Navigator.canPop(context)) {
+        Navigator.of(context).pop(); // Hide the loader in case of an error
+      }
       if (kDebugMode) {
         print('Error: $e');
       }
