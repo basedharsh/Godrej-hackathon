@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/widgets.dart';
 import 'package:godrage/Models/chat_model.dart';
 import 'package:godrage/Screens/sidebar.dart';
 import 'package:godrage/theme/app_theme.dart';
@@ -17,9 +16,6 @@ import 'package:provider/provider.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:godrage/providers/message_tab_provider.dart';
-
-import '../utils/web_util.dart'
-    if (dart.library.io) '../utils/mobile_util.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key, required this.title});
@@ -82,7 +78,7 @@ class _ChatPageState extends State<ChatPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://127.0.0.1:5000/ask_question'),
+        Uri.parse('http://13.232.27.252:5000/ask_question'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -155,7 +151,7 @@ class _ChatPageState extends State<ChatPage> {
           },
         );
 
-        String url = 'http://127.0.0.1:5000/create_session';
+        String url = 'http://13.232.27.252:5000/create_session';
         var request = http.MultipartRequest('POST', Uri.parse(url));
 
         request.fields['chat_name'] = chatName;
