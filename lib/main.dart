@@ -26,8 +26,8 @@ class MyApp extends StatelessWidget {
       ],
       child: const MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'ChatGPT-like Chat',
-        home: ChatPage(title: 'GOD-Rage'),
+        title: 'Godrej Hackathon',
+        home: ChatPage(title: 'Godrej-Bot'),
       ),
     );
   }

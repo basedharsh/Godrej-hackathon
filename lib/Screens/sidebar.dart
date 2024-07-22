@@ -35,7 +35,7 @@ class Sidebar extends StatelessWidget {
                 ),
                 const SizedBox(width: 8.0),
                 Text(
-                  'God-Rage',
+                  'Godrej-Bot',
                   style: AppTheme.fontStyleLarge
                       .copyWith(color: AppTheme.textColor),
                 ),
