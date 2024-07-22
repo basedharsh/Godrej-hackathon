@@ -18,6 +18,7 @@ In today’s fast-paced digital world, professionals often struggle to navigate 
 - **Backend**: Firebase
 - **Hosting**: GitHub Pages (for website), AWS EC2 (for Flask API)
 - **API**: Flask
+- **Docker**: Containerize requirements and Python modules for hosting
 
 ## Features
 
