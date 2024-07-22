@@ -72,6 +72,11 @@ Follow these steps to set up the project on your local machine.
 ---
 
 
+High Level Architecture : 
+
+![Block diagram](https://github.com/user-attachments/assets/d6b969a1-c48f-4f19-a184-e11f7eba8ce0)
+
+
 **Team Members**:
 - [Harsh](https://github.com/basedharsh)
 - [Manan](https://github.com/manankabra)
