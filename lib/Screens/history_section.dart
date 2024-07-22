@@ -32,11 +32,11 @@ class HistorySection extends StatelessWidget {
                   text: 'Pinned Message',
                   onTap: () => onSelectOption('Pinned Message'),
                 ),
-                _buildOptionItem(
-                  icon: Icons.model_training,
-                  text: 'Choose Model',
-                  onTap: () => onSelectOption('Choose Model'),
-                ),
+                // _buildOptionItem(
+                //   icon: Icons.model_training,
+                //   text: 'Choose Model',
+                //   onTap: () => onSelectOption('Choose Model'),
+                // ),
               ],
             ),
           ),

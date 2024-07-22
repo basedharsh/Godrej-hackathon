@@ -275,7 +275,7 @@ class _MessagesTabState extends State<MessagesTab> {
           child: ConstrainedBox(
             constraints: BoxConstraints(
               maxWidth:
-                  MediaQuery.of(context).size.width * (kIsWeb ? 0.45 : 0.75),
+                  MediaQuery.of(context).size.width * (kIsWeb ? 0.45 : 0.85),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

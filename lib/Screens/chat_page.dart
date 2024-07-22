@@ -185,7 +185,11 @@ class _ChatPageState extends State<ChatPage> {
             print('Response from server: $responseJson');
           }
           sessionProvider.addSession(responseJson);
-
+          await _askQuestion(
+            sessionId: responseJson['id'],
+            question:
+                'Please summarize the attached document and provide an overview of its key points. Focus on the main themes, objectives, and any notable details. Aim to give a clear and concise summary that captures the essence of the content',
+          );
           Navigator.of(context).pop(); // Hide the loader
 
           // Refresh the page
