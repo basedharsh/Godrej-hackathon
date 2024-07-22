@@ -78,7 +78,7 @@ class _ChatPageState extends State<ChatPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://13.232.27.252:5000/ask_question'),
+        Uri.parse('https://api.godrejhackathon.xyz/ask_question'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -151,7 +151,7 @@ class _ChatPageState extends State<ChatPage> {
           },
         );
 
-        String url = 'http://13.232.27.252:5000/create_session';
+        String url = 'https://api.godrejhackathon.xyz/create_session';
         var request = http.MultipartRequest('POST', Uri.parse(url));
 
         request.fields['chat_name'] = chatName;
